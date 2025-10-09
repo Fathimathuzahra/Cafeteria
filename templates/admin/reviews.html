@@ -1,0 +1,64 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Admin Reviews | College Canteen{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="background: var(--card-bg); padding: 30px; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.15); font-family: 'Poppins', sans-serif;">
+
+    <h2 class="text-center mb-4" style="color: var(--primary-color); font-weight: 700; font-size: 2.25rem;">
+        💬 User Reviews
+    </h2>
+
+    {% if reviews %}
+    <div class="table-responsive shadow rounded">
+        <table class="table table-hover table-bordered text-center" style="border-color: var(--primary-color); background: var(--light-bg);">
+            <thead style="background-color: var(--primary-color); color: var(--white); font-weight: 700;">
+                <tr>
+                    <th>User</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Visible</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in reviews %}
+                <tr style="color: var(--text-color);">
+                    <td>{{ review.user.username }}</td>
+                    <td>
+                        <span class="badge rounded-pill" style="background-color: var(--primary-color); color: var(--white); padding: 0.5rem 1rem;">
+                            {{ review.rating }}
+                        </span>
+                    </td>
+                    <td style="max-width: 300px; word-wrap: break-word;">
+                        {{ review.comment }}
+                    </td>
+                    <td>
+                        {% if review.visible %}
+                            <span class="badge rounded-pill" style="background-color: var(--primary-dark); color: var(--white); padding: 0.5rem 1rem;">Yes</span>
+                        {% else %}
+                            <span class="badge rounded-pill" style="background-color: #ccc; color: #333; padding: 0.5rem 1rem;">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="review_id" value="{{ review.id }}">
+                            <button type="submit" class="btn btn-sm" style="border: 1px solid var(--primary-color); color: var(--primary-color); padding: 0.3rem 0.8rem; border-radius: 8px;">
+                                {% if review.visible %}Hide{% else %}Show{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert text-center" style="border: 1px solid var(--primary-color); color: var(--primary-color); border-radius: 12px; padding: 1rem;">
+        No reviews available.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

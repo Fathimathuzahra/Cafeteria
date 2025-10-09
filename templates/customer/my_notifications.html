@@ -1,0 +1,96 @@
+{% extends "customer/user_base.html" %}
+{% load static %}
+
+{% block title %}My Notifications | College Canteen{% endblock %}
+
+{% block content %}
+<style>
+.notification-container {
+    max-width: 900px;
+    margin: 50px auto;
+    background: #FFF8F0; /* Primary background */
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    color: #3E2C1C; /* Text color */
+    font-family: 'Segoe UI', 'Times New Roman', sans-serif;
+}
+
+.notification-header {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #8B4513; /* Primary accent */
+    margin-bottom: 25px;
+}
+
+.notification-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.notification-item {
+    background: #FFFFFF; /* Card background */
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    position: relative;
+    color: #3E2C1C;
+}
+
+.notification-item:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    border-left: 5px solid #D2691E; /* Secondary accent on hover */
+}
+
+.notification-time {
+    display: block;
+    font-size: 0.8rem;
+    color: #888; /* softer text */
+    margin-top: 6px;
+}
+
+.badge-new {
+    background: #FFF3E0; /* Alert background */
+    color: #8B4513; /* Primary accent for text */
+    font-size: 0.75rem;
+    padding: 3px 7px;
+    border-radius: 8px;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-weight: 600;
+}
+
+.text-center-muted {
+    text-align: center;
+    color: #555;
+    font-style: italic;
+    margin-top: 20px;
+}
+</style>
+
+<div class="notification-container">
+    <h2 class="notification-header">🔔 My Notifications</h2>
+
+    {% if notifications %}
+        <ul class="notification-list">
+            {% for note in notifications %}
+                <li class="notification-item">
+                    {{ note.message }}
+                    {% if not note.is_read %}
+                        <span class="badge-new">New</span>
+                    {% endif %}
+                    <span class="notification-time">{{ note.created_at|date:"d M Y, h:i A" }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-center-muted">No notifications yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

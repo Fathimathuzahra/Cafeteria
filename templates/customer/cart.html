@@ -1,0 +1,130 @@
+{% extends "customer/user_base.html" %}
+{% load custom_filters %}
+
+{% load cart_extras %}
+{% block content %}
+
+<div class="container" style="max-width:1100px; margin:50px auto; padding:30px; background:#FFF8F0; border-radius:18px; box-shadow:0 8px 25px rgba(0,0,0,0.12); color:#3E2C1C;">
+
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert" style="padding:12px 20px; border-radius:10px; margin-bottom:10px; 
+                    {% if message.tags == 'error' %}background:#D2691E; color:#fff;
+                    {% elif message.tags == 'success' %}background:#8B4513; color:#fff;
+                    {% else %}background:#FFD8A6; color:#3E2C1C;{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <h2 class="text-center" style="color:#8B4513; margin-bottom:35px; font-weight:700;">
+        <i class="fas fa-shopping-cart"></i> Your Cart
+    </h2>
+
+    {% if cart_items %}
+        <!-- Cart Update Form -->
+        <form method="post" action="{% url 'cart_update' %}">
+            {% csrf_token %}
+            <div style="overflow-x:auto; border-radius:12px;">
+                <table style="width:100%; border-collapse:collapse; background:#FDE6C4; border-radius:12px;">
+                    <thead style="background:#8B4513; color:#fff;">
+                        <tr>
+                            <th>Item</th>
+                            <th>Portion</th>
+                            <th>Quantity</th>
+                            <th>Price (₹)</th>
+                            <th>Subtotal (₹)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in cart_items %}
+                            <tr style="border-bottom:1px solid #FFD8A6;">
+                                <td>{{ entry.menu_item.name }}</td>
+                                <td>{{ entry.portion|capfirst }}</td>
+                                <td>
+                                    <input type="number" name="quantity_{{ entry.key }}" 
+                                           value="{{ entry.quantity }}" min="1" 
+                                           style="width: 60px; padding: 5px; text-align: center; background: #FFF3E0; color: #3E2C1C; border: 1px solid #8B4513; border-radius:6px;">
+                                </td>
+                                <td>₹{{ entry.price|floatformat:2 }}</td>
+                                <td>₹{{ entry.subtotal|floatformat:2 }}</td>
+                                <td>
+                                    <a href="{% url 'cart_remove' entry.key %}" 
+                                       style="color: #D2691E; text-decoration: none; font-size: 1.2rem;" 
+                                       title="Remove item">
+                                        🗑️ Remove
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #8B4513; color:#fff; font-weight:bold;">
+                            <td colspan="4" style="text-align:right; padding:15px;">Total:</td>
+                            <td>₹{{ total|floatformat:2 }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div style="margin-top:25px;">
+                <button type="submit" class="btn" style="padding:12px 25px; border-radius:12px; background:#8B4513; color:#fff; font-weight:600; transition:0.3s;">
+                    🔄 Update Cart
+                </button>
+                <a href="{% url 'cart_clear' %}" class="btn" style="padding:12px 25px; border-radius:12px; background:#D2691E; color:#fff; font-weight:600; transition:0.3s; margin-left:10px;">
+                    🗑 Clear Cart
+                </a>
+            </div>
+        </form>
+
+        <!-- Checkout / Get Token -->
+        <div style="margin-top: 20px; text-align: center;">
+            <div style="font-size:1.4rem; font-weight:bold; color:#8B4513; display:inline-flex; align-items:center; gap:25px;">
+                💰 Total: <span>₹{{ total|floatformat:2 }}</span>
+            </div>
+
+            {% if has_items %}
+            <form method="post" action="{% url 'checkout' %}" style="margin-top:15px;">
+                {% csrf_token %}
+                <button type="submit" class="btn" style="padding:12px 25px; border-radius:12px; background:#A0522D; color:#fff; font-weight:600;">
+                    🎫 Get Token
+                </button>
+            </form>
+            {% else %}
+            <button class="btn" disabled style="padding:12px 25px; border-radius:12px; background:#ccc; color:#444; margin-top:15px;">
+                🎫 No Items in Cart
+            </button>
+            {% endif %}
+
+        </div>
+
+    {% else %}
+        <div style="text-align:center; padding:80px 20px; color:#555;">
+            <i class="fas fa-box-open" style="font-size:5rem; margin-bottom:20px; color:#8B4513;"></i>
+            <p style="font-size:1.3rem;">Your cart is empty. Add some items to continue.</p>
+            <a href="{% url 'user_menu_list' %}" class="btn" style="padding:12px 25px; border-radius:12px; background:#A0522D; color:#fff; font-weight:600; margin-top:20px; display:inline-block; transition:0.3s;">
+                🍽️ Browse Menu
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .btn:hover { opacity:0.85; transform:translateY(-2px); cursor: pointer; }
+    table th, table td { text-align:center; padding:12px 8px; }
+    table tbody tr:hover { background:#FFF3E0; }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    @media (max-width:768px){
+        .container { padding:20px; margin:30px auto; }
+        table th, table td { padding:10px 5px; font-size:0.9rem; }
+        .btn { font-size:0.9rem; padding:10px 18px; margin-bottom: 10px; }
+    }
+</style>
+
+{% endblock %}

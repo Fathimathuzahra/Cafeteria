@@ -1,0 +1,211 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About Us | Campus Bites - College Canteen</title>
+
+<!-- Google Fonts & Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* =========================
+   LIGHT THEME COLOR PALETTE
+========================= */
+:root {
+  --primary-bg: #FFF8F0; /* 🍦 Cream beige */
+  --secondary-bg: #FDE6C4; /* 🍯 Light caramel */
+  --primary-accent: #8B4513; /* 🍫 Rich brown */
+  --secondary-accent: #D2691E; /* 🍂 Cinnamon orange */
+  --hover-color: #A0522D; /* ☕ Mocha brown */
+  --card-bg: #FFFFFF; /* ⚪ White */
+  --text-color: #3E2C1C; /* 🪵 Dark walnut brown */
+  --alert-bg: #FFF3E0; /* 🍊 Light orange cream */
+}
+
+/* =========================
+   RESET & GLOBAL STYLES
+========================= */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+body {
+  background-color: var(--primary-bg);
+  color: var(--text-color);
+  overflow-x: hidden;
+}
+
+/* =========================
+   NAVBAR STYLING
+========================= */
+.navbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 60px;
+  background-color: var(--secondary-bg);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  border-bottom: 2px solid var(--primary-accent);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+.brand {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.logo {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary-accent);
+  background: var(--card-bg);
+  transition: all 0.3s ease;
+}
+.logo:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(139,69,19,0.3);
+}
+.brand-name {
+  font-family: 'Great Vibes', cursive;
+  font-size: 2.2rem;
+  color: var(--primary-accent);
+  font-weight: 600;
+}
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+.nav-links a {
+  text-decoration: none;
+  color: var(--primary-accent);
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 8px 18px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+}
+.nav-links a:hover, .nav-links a.active {
+  background-color: var(--primary-accent);
+  color: var(--primary-bg);
+  box-shadow: 0 3px 10px rgba(139,69,19,0.3);
+  transform: translateY(-2px);
+}
+
+/* =========================
+   ABOUT SECTION
+========================= */
+.hero-area {
+  min-height: 100vh;
+  background: linear-gradient(rgba(255,248,240,0.9), rgba(255,248,240,0.9)),
+              url('{% static "images/20.jpg" %}') center/cover no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 120px 20px;
+}
+
+.about-box {
+  background-color: var(--card-bg);
+  border: 2px solid var(--primary-accent);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  padding: 50px 40px;
+  max-width: 700px;
+  text-align: center;
+  animation: fadeIn 0.8s ease-in-out;
+}
+.about-box i {
+  font-size: 50px;
+  color: var(--primary-accent);
+  margin-bottom: 20px;
+}
+.about-box h2 {
+  color: var(--secondary-accent);
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+.about-box p {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text-color);
+  margin-bottom: 18px;
+}
+.btn-back {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--primary-accent), var(--hover-color));
+  color: var(--primary-bg);
+  padding: 14px 35px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 18px rgba(139,69,19,0.3);
+}
+.btn-back:hover {
+  background: linear-gradient(135deg, var(--hover-color), var(--primary-accent));
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(139,69,19,0.4);
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 25px;
+  }
+  .nav-links {
+    gap: 20px;
+  }
+  .brand-name {
+    font-size: 1.8rem;
+  }
+  .about-box {
+    padding: 35px 25px;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="{% url 'index' %}" class="brand">
+    <img src="{% static 'images/logo.png' %}" alt="Campus Bites Logo" class="logo" />
+    <span class="brand-name">Campus Bites</span>
+  </a>
+  <div class="nav-links">
+    <a href="{% url 'index' %}">Home</a>
+    <a href="{% url 'menu' %}">Menu</a>
+    <a href="{% url 'about' %}" class="active">About</a>
+  </div>
+</nav>
+
+<!-- About Section -->
+<section class="hero-area">
+  <div class="about-box">
+    <i class="fas fa-info-circle"></i>
+    <h2>About Us</h2>
+    <p>Welcome to <strong>Campus Bites</strong> — the heart of AWH Engineering College where taste meets togetherness!</p>
+    <p>We’re not just a canteen; we’re a space where students, faculty, and staff gather to relax, recharge, and enjoy great food prepared fresh every day. From energizing breakfasts to satisfying lunches and evening snacks, our menu is designed with love and quality.</p>
+    <p>We believe that good food brings people together, and that’s exactly what we aim to do — serve happiness, one meal at a time!</p>
+    <a href="{% url 'index' %}" class="btn-back">← Back to Home</a>
+  </div>
+</section>
+
+</body>
+</html>

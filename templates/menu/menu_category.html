@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ category }} Menu</h2>
+<ul>
+  {% for item in items %}
+    <li>{{ item.name }} - ₹{{ item.price }}</li>
+  {% empty %}
+    <li>No items available in this category.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

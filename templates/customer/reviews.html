@@ -1,0 +1,70 @@
+{% extends 'customer/user_base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4" style="color:#8B4513; font-weight:700; font-size:2rem;">⭐ {{ title }}</h2>
+    {% if reviews %}
+    <div class="row g-4">
+        {% for review in reviews %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card review-card h-100 shadow-sm" style="
+                border-radius: 1rem; 
+                border-left: 5px solid #D2691E; 
+                background:#FFF8F0; 
+                color:#3E2C1C; 
+                transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;">
+                <div class="card-body">
+                    {% if show_user %}
+                    <h5 class="card-title" style="font-weight:600; color:#8B4513;">
+                        {{ review.user.username }}
+                        <span class="badge" style="background:#FFD580; color:#3E2C1C; font-weight:600; margin-left:8px;">★ {{ review.rating }}</span>
+                    </h5>
+                    {% else %}
+                    <h5 class="card-title" style="font-weight:600; color:#8B4513;">★ {{ review.rating }}</h5>
+                    {% endif %}
+                    <p class="card-text fst-italic" style="color:#5A4632;">“{{ review.comment }}”</p>
+                </div>
+                <div class="card-footer border-0" style="color:#888; font-size:0.85rem;">
+                    📅 {{ review.created_at|date:"d M Y, h:i A" }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center" style="color:#5A4632; font-size:1.1rem;">😕 No reviews available yet.</p>
+    {% endif %}
+
+    <div class="text-center mt-5">
+        <a href="{% url 'user_menu_list' %}" class="btn shadow-lg" style="
+            background:#D2691E; 
+            color:#fff; 
+            font-weight:600; 
+            padding:12px 25px; 
+            border-radius:25px; 
+            margin-right:10px;
+            transition: all 0.3s ease;">🍴 Order Now</a>
+        <a href="{% url 'user_dashboard' %}" class="btn shadow-lg" style="
+            background:#fff; 
+            color:#8B4513; 
+            font-weight:600; 
+            padding:12px 25px; 
+            border-radius:25px; 
+            border:2px solid #D2691E;
+            transition: all 0.3s ease;">⬅ Back to Dashboard</a>
+    </div>
+</div>
+
+<style>
+.review-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

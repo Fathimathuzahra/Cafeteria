@@ -1,0 +1,322 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Register | College Canteen</title>
+
+<!-- Google Fonts & Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-color: #FFF8F0;          /* 🍦 Cream beige */
+  --secondary-bg: #FDE6C4;      /* 🍯 Light caramel */
+  --primary-accent: #8B4513;    /* 🍫 Rich brown */
+  --secondary-accent: #D2691E;  /* 🍂 Cinnamon orange */
+  --hover-color: #A0522D;       /* ☕ Mocha brown */
+  --card-bg: #FFFFFF;           /* ⚪ White */
+  --text-color: #3E2C1C;        /* 🪵 Dark walnut brown */
+  --alert-bg: #FFF3E0;          /* 🍊 Light orange cream */
+}
+
+/* Reset & Global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+body {
+  background: linear-gradient(135deg, var(--bg-color), var(--secondary-bg));
+  color: var(--text-color);
+}
+
+/* Navbar Styling */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: linear-gradient(135deg, var(--secondary-bg), var(--bg-color));
+  border-bottom: 2px solid var(--primary-accent);
+  border-radius: 0 0 15px 15px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+.brand {
+  text-decoration: none;
+  color: inherit;
+}
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary-accent);
+  background-color: var(--card-bg);
+  transition: 0.3s;
+}
+.logo:hover {
+  transform: scale(1.1);
+  border-color: var(--hover-color);
+}
+.brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: var(--primary-accent);
+  transition: color 0.3s ease;
+}
+.brand-name:hover {
+  color: var(--secondary-accent);
+}
+.navbar ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+.navbar ul li a {
+  color: var(--primary-accent);
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 25px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+.navbar ul li a:hover {
+  background-color: var(--primary-accent);
+  color: var(--card-bg);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+}
+
+/* Hero / Form Area */
+.hero-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding-top: 100px;
+  background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), 
+              url('{% static "images/20.jpg" %}') no-repeat center center/cover;
+  border-radius: 0 0 30px 30px;
+}
+
+/* Form Styling */
+.form-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.form-container {
+  background: var(--card-bg);
+  padding: 50px 40px;
+  border-radius: 25px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+  width: 400px;
+  border: 2px solid var(--primary-accent);
+  transition: 0.3s;
+}
+.form-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 55px rgba(0,0,0,0.2);
+}
+.form-icon {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.form-icon i {
+  font-size: 50px;
+  color: var(--primary-accent);
+  background: var(--card-bg);
+  padding: 15px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-accent);
+}
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--primary-accent);
+}
+
+/* Input Fields */
+.form-group {
+  margin-bottom: 18px;
+  position: relative;
+}
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--primary-accent);
+}
+.form-group input {
+  width: 100%;
+  padding: 12px 15px 12px 45px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 15px;
+  outline: none;
+  transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+.form-group i {
+  position: absolute;
+  left: 15px;
+  top: 38px;
+  color: var(--secondary-accent);
+  font-size: 18px;
+}
+.form-group input:focus {
+  border-color: var(--secondary-accent);
+  box-shadow: 0 0 12px var(--hover-color);
+}
+
+/* Buttons */
+.site-btn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+  color: var(--card-bg);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  box-shadow: 0 6px 15px rgba(139,69,19,0.3);
+  transition: all 0.3s ease;
+}
+.site-btn:hover {
+  background: linear-gradient(135deg, var(--hover-color), var(--primary-accent));
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(139,69,19,0.5);
+}
+
+/* Links & Alerts */
+.links {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.links a {
+  color: var(--secondary-accent);
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+.links a i {
+  margin-right: 6px;
+}
+.links a:hover {
+  color: var(--hover-color);
+}
+.messages {
+  text-align: center;
+  background: var(--alert-bg);
+  border-left: 4px solid var(--secondary-accent);
+  color: var(--text-color);
+  font-size: 14px;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form-container { width: 90%; padding: 35px 25px; }
+  .navbar { padding: 12px 20px; }
+  .navbar ul { gap: 15px; }
+  .brand-name { font-size: 1.8rem; }
+  .links { flex-direction: column; gap: 10px; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="{% url 'index' %}" class="brand">
+    <div class="logo-container">
+      <img src="{% static 'images/logo.png' %}" alt="Cafeteria Logo" class="logo"/>
+      <span class="brand-name">Cafeteria</span>
+    </div>
+  </a>
+  <ul>
+    <li><a href="{% url 'index' %}">Home</a></li>
+    <li><a href="{% url 'menu' %}">Menu</a></li>
+    <li><a href="{% url 'about' %}">About</a></li>
+  </ul>
+</nav>
+
+<!-- Register Form Section -->
+<div class="hero-area">
+  <div class="form-wrapper">
+    <div class="form-container">
+      <div class="form-icon"><i class="fas fa-user-plus"></i></div>
+      <h2>REGISTER</h2>
+
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'register' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="username">Username<span style="color:red">*</span></label>
+          <i class="fas fa-user"></i>
+          <input type="text" name="username" id="username" placeholder="Enter Username" value="{{ form.username.value|default_if_none:'' }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number<span style="color:red">*</span></label>
+          <i class="fas fa-phone"></i>
+          <input type="text" name="phone" id="phone" placeholder="Enter Phone Number" value="{{ form.phone.value|default_if_none:'' }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password<span style="color:red">*</span></label>
+          <i class="fas fa-lock"></i>
+          <input type="password" name="password" id="password" placeholder="Enter Password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password<span style="color:red">*</span></label>
+          <i class="fas fa-lock"></i>
+          <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm Password" required>
+        </div>
+
+        <button type="submit" class="site-btn">Register</button>
+
+        <div class="links">
+          <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i>Login</a>
+          <a href="{% url 'index' %}"><i class="fas fa-home"></i>Back to Home</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

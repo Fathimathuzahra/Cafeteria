@@ -1,0 +1,196 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}Dashboard | Campus Bites{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap"/>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"/>
+
+    <!-- AOS CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/beautify.css' %}">
+
+    <style>
+    :root {
+        /* Navbar & General Colors */
+        --primary-accent: #8B4513; 
+        --secondary-accent: #D2691E; 
+        --hover-accent: #A0522D; 
+        --bg-cream: #FFF8F0;
+        --bg-light: #FDE6C4;
+        --text-dark: #3E2C1C;
+        --text-medium: #5D4735;
+        --text-light: #7F5A3F;
+        --text-white: #FFFFFF;
+        --border-light: rgba(139,69,19,0.15);
+        --gradient-primary: linear-gradient(135deg, #8B4513, #D2691E);
+        --gradient-accent: linear-gradient(135deg, #D2691E, #A0522D);
+        --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --shadow-medium: 0 15px 40px rgba(0, 0, 0, 0.12);
+        --shadow-strong: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-cream);
+        color: var(--text-dark);
+        margin: 0;
+        padding: 0;
+        line-height: 1.7;
+    }
+
+    /* =========================
+       Header & Navigation
+    =========================== */
+    .header {
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-soft);
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 1000;
+        transition: all 0.4s ease;
+        border-bottom: 2px solid var(--border-light);
+        background: rgba(255, 248, 240, 0.95);
+    }
+    .header.scrolled {
+        background: rgba(255, 248, 240, 0.98);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .nav-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .logo-section {
+        display: flex; 
+        align-items: center; 
+        gap: 1rem; 
+        text-decoration: none;
+    }
+    .logo {
+        width: 50px; height: 50px; border-radius: 12px; object-fit: cover;
+        border: 3px solid var(--primary-accent); 
+        box-shadow: var(--shadow-soft);
+        transition: all 0.4s ease;
+    }
+    .logo:hover {
+        transform: scale(1.05) rotate(2deg);
+        box-shadow: 0 8px 25px rgba(139,69,19,0.2);
+    }
+    .brand-text {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem; font-weight: 700; 
+        background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .nav-menu {
+        display: flex; list-style: none; gap: 1rem; align-items: center;
+    }
+    .nav-link {
+        color: var(--text-medium);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.6rem 1rem;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+    .nav-link:hover {
+        color: var(--primary-accent);
+        background: rgba(139,69,19,0.08);
+    }
+    .nav-link.active { 
+        color: var(--primary-accent); 
+        background: rgba(139,69,19,0.1);
+        box-shadow: 0 4px 12px rgba(139,69,19,0.15);
+    }
+    .nav-cta {
+        background: var(--gradient-accent);
+        color: var(--text-white);
+        padding: 0.6rem 1.5rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(210,105,30,0.4);
+    }
+    .nav-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(210,105,30,0.5);
+    }
+    .mobile-menu-btn { display: none; background: none; border: none; font-size: 1.6rem; color: var(--primary-accent); cursor: pointer; }
+
+    @media (max-width: 768px) {
+        .nav-container { flex-direction: column; }
+        .mobile-menu-btn { display: block; }
+        .nav-menu { display: none; flex-direction: column; width: 100%; margin-top: 1rem; }
+        .nav-menu.active { display: flex; }
+    }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="{% url 'index' %}" class="logo-section">
+                <img src="{% static 'images/logo.png' %}" alt="Campus Bites Logo" class="logo">
+                <span class="brand-text">Cafeteria</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu"><i class="bi bi-list"></i></button>
+            <ul class="nav-menu">
+                <li><a href="{% url 'index' %}" class="nav-link {% block nav_home %}{% endblock %}">Home</a></li>
+                <li><a href="{% url 'menu' %}" class="nav-link {% block nav_menu %}{% endblock %}">Menu</a></li>
+                <li><a href="{% url 'about' %}" class="nav-link {% block nav_about %}{% endblock %}">About</a></li>
+                <li><a href="{% url 'login' %}" class="nav-cta">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main style="padding-top: 100px;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" style="margin-top: 4rem;">
+
+        <div class="footer-bottom" style="text-align:center; color: #503c0eff; margin-top:2rem;">
+            <p>&copy; 2025 Cafeteria - AWH College Canteen. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- AOS JS -->
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 1000, once: true });
+
+        // Header scroll effect
+        window.addEventListener("scroll", function() {
+            const header = document.querySelector(".header");
+            header.classList.toggle("scrolled", window.scrollY > 50);
+        });
+
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
+            document.querySelector('.nav-menu').classList.toggle('active');
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

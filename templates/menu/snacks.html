@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Snacks Menu | College Canteen</title>
+  <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+  <style>
+    body {
+      background-color: #26282b;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+      padding: 40px 20px;
+    }
+
+    .heading {
+      text-align: center;
+      color: #ffc107;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background-color: #343a40;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.03);
+    }
+
+    .card-img-top {
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .card-body {
+      padding: 15px;
+      text-align: center;
+    }
+
+    .card-title {
+      color: #fbc02d;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .card-text {
+      font-size: 14px;
+      color: #ccc;
+      margin-bottom: 10px;
+    }
+
+    .price {
+      font-weight: bold;
+      color: #00ff99;
+      font-size: 16px;
+    }
+
+    .btn-warning {
+      background-color: #ffc107;
+      border: none;
+      color: #000;
+    }
+
+    .btn-warning:hover {
+      background-color: #e0a800;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="heading">🥟 Snacks Menu</h2>
+    <div class="row">
+      {% for item in snacks_items %}
+      <div class="col-md-4 mb-4">
+        <div class="card">
+          <img src="{% static item.image %}" alt="{{ item.name }}" class="card-img-top">
+          <div class="card-body">
+            <h5 class="card-title">{{ item.name }}</h5>
+            <p class="card-text">{{ item.description }}</p>
+            <p class="price">₹{{ item.price }}</p>
+            <a href="#" class="btn btn-warning">Order Now</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

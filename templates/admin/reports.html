@@ -1,0 +1,38 @@
+{% extends 'admin/admin_base.html' %}
+
+{% block title %}Admin Reports | College Canteen{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="background: var(--card-bg); padding: 30px; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.15); font-family: 'Poppins', sans-serif;">
+
+    <h2 class="text-center mb-4" style="color: var(--primary-color); font-weight: 700;">📊 Daily Meal Token Reports</h2>
+
+    {% if report %}
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered text-center" style="border-radius: 10px; overflow: hidden;">
+            <thead style="background-color: var(--primary-color); color: var(--white); font-weight: 700;">
+                <tr>
+                    <th>Date</th>
+                    <th>Meal Type</th>
+                    <th>Status</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in report %}
+                <tr style="background-color: var(--light-bg); color: var(--text-color); transition: 0.3s;">
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.meal_type|title }}</td>
+                    <td>{{ row.status|title }}</td>
+                    <td>{{ row.count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p class="text-center mt-3" style="color: var(--primary-dark);">No reports available.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

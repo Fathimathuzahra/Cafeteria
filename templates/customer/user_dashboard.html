@@ -1,0 +1,182 @@
+{% extends "customer/user_base.html" %}
+{% load static %}
+{% block content %}
+<style>
+/* ====== DASHBOARD CONTAINER ====== */
+.dashboard-container {
+    padding: 2.5rem;
+    border-radius: 20px;
+    max-width: 1200px;
+    margin: 40px auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    font-family: 'Poppins', 'Times New Roman', serif;
+    background: linear-gradient(145deg, #FFF8F0, #FDE6C4); /* warm cream to caramel */
+    color: #3E2C1C; /* dark walnut brown text */
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+/* ====== HEADER ====== */
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.dashboard-header h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #8B4513; /* rich brown */
+    margin-bottom: 0.3rem;
+    animation: slideDown 0.8s ease-out;
+}
+.dashboard-header p {
+    color: #5C4033;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* ====== ALERT ====== */
+.alert-warning {
+    background-color: #FFF3E0;
+    color: #A0522D;
+    border-radius: 12px;
+    padding: 14px 20px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    font-weight: 500;
+    margin-bottom: 25px;
+}
+
+/* ====== DASHBOARD GRID ====== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.8rem;
+}
+
+/* ====== DASHBOARD CARD ====== */
+.card {
+    background: #ffffff; 
+    color: #3E2C1C;
+    padding: 1.6rem;
+    border-radius: 20px;
+    text-align: center;
+    font-weight: 600;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 6px solid #D2691E; /* cinnamon accent */
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+.card:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+.card i {
+    font-size: 2.4rem;
+    margin-bottom: 0.8rem;
+    color: #D2691E; /* cinnamon icons */
+}
+.card h3 {
+    font-size: 1.35rem;
+    margin-bottom: 0.5rem;
+}
+.card p {
+    font-size: 0.95rem;
+    color: #6B4F3B;
+    margin-bottom: 1.2rem;
+}
+.card a {
+    display: inline-block;
+    padding: 8px 18px;
+    background: #8B4513; /* rich brown button */
+    color: #fff;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.card a:hover {
+    background: #A0522D; /* mocha hover */
+    color: #fff;
+}
+
+/* ====== ANIMATIONS ====== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive text scaling */
+@media (max-width: 768px) {
+    .dashboard-header h1 { font-size: 2rem; }
+    .card h3 { font-size: 1.2rem; }
+    .card p { font-size: 0.9rem; }
+}
+
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>👋 Welcome, {{ request.user.first_name|default:request.user.username }}</h1>
+        <p>Your personalized canteen dashboard</p>
+    </div>
+
+    {% if not token_active %}
+    <div class="alert alert-warning text-center">
+        {% if user_type == 'student' %}
+            Sorry, you can activate lunch token only from 12:00 PM to 2:00 PM.
+        {% elif user_type == 'faculty' %}
+            Sorry, you can activate lunch token only from 12:00 PM to 3:00 PM.
+        {% else %}
+            Sorry, lunch token is not available for your account.
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="dashboard-grid">
+        <!-- Daily Menu -->
+        <div class="card">
+            <i class="fas fa-utensils"></i>
+            <h3>Daily Menu</h3>
+            <p>Check today’s meals and add items to your cart.</p>
+            <a href="{% url 'user_menu_list' %}">View Menu</a>
+        </div>
+
+        <!-- My Cart -->
+        <div class="card">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>My Cart</h3>
+            <p>Review and manage items you’ve added.</p>
+            <a href="{% url 'cart_view' %}">Go to Cart</a>
+        </div>
+
+        <!-- My Tokens -->
+        <div class="card">
+            <i class="fas fa-ticket-alt"></i>
+            <h3>My Tokens</h3>
+            <p>Track your meal tokens and order status.</p>
+            <a href="{% url 'my_tokens' %}">View Tokens</a>
+        </div>
+
+        <!-- My Notifications -->
+        <div class="card">
+            <i class="fas fa-bell"></i>
+            <h3>My Notifications</h3>
+            <p>Check the latest updates from the canteen.</p>
+            <a href="{% url 'my_notifications' %}">View Notifications</a>
+        </div>
+
+        <!-- Customer Reviews -->
+        <div class="card">
+            <i class="fas fa-star"></i>
+            <h3>Reviews</h3>
+            <p>See all customer reviews and ratings.</p>
+            <a href="{% url 'reviews' %}">View Reviews</a>
+        </div>
+    </div>
+</div>
+
+<!-- FontAwesome for icons -->
+<script src="https://kit.fontawesome.com/a2e0adf6b9.js" crossorigin="anonymous"></script>
+{% endblock %}

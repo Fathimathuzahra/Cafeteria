@@ -1,0 +1,219 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block title %}Staff Dashboard | College Canteen{% endblock %}
+
+{% block content %}
+<style>
+:root {
+    --bg-cream: #FFF8F0;
+    --bg-caramel: #FDE6C4;
+    --primary-accent: #8B4513;
+    --secondary-accent: #D2691E;
+    --hover-accent: #A0522D;
+    --text-dark: #3E2C1C;
+    --card-bg: #FFFFFF;
+}
+
+/* ====== LAYOUT ====== */
+.dashboard-wrapper {
+    display: flex;
+    min-height: 90vh;
+    font-family: 'Poppins', 'Times New Roman', serif;
+}
+
+/* ====== SIDEBAR ====== */
+.sidebar {
+    width: 220px;
+    background: var(--primary-accent);
+    color: #fff;
+    border-radius: 0 20px 20px 0;
+    padding-top: 2rem;
+    flex-shrink: 0;
+}
+.sidebar img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+.sidebar .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-bottom: 2rem;
+}
+.sidebar a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #fff;
+    text-decoration: none;
+    margin: 5px 10px;
+    border-radius: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+.sidebar a i {
+    margin-right: 12px;
+}
+.sidebar a:hover,
+.sidebar a.active {
+    background: var(--secondary-accent);
+    color: #fff;
+    transform: scale(1.02);
+}
+
+/* ====== DASHBOARD CONTENT ====== */
+.dashboard-content {
+    flex-grow: 1;
+    padding: 2rem 3rem;
+    background: linear-gradient(145deg, var(--bg-cream), var(--bg-caramel));
+    border-radius: 20px;
+    margin: 20px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+}
+
+/* ====== DASHBOARD HEADER ====== */
+.dashboard-heading {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-accent);
+    margin-bottom: 10px;
+}
+.welcome-text {
+    color: var(--text-dark);
+    font-size: 1rem;
+    margin-bottom: 30px;
+}
+
+/* ====== DASHBOARD GRID ====== */
+.dashboard-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+}
+
+/* ====== ACTION CARDS ====== */
+.btn-dashboard {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--card-bg);
+    color: var(--text-dark);
+    border-radius: 15px;
+    padding: 1.5rem 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s ease-in-out;
+    border-left: 5px solid var(--secondary-accent);
+    min-height: 140px;
+}
+.btn-dashboard i {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: var(--secondary-accent);
+}
+.btn-dashboard span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-align: center;
+}
+.btn-dashboard:hover {
+    transform: translateY(-6px) scale(1.04);
+    background: linear-gradient(145deg, var(--primary-accent), var(--secondary-accent));
+    color: #fff;
+}
+.btn-dashboard:hover i {
+    color: #fff;
+}
+.btn-dashboard.logout {
+    background: linear-gradient(145deg, #e53935, #b71c1c);
+    color: #fff;
+    border: none;
+}
+.btn-dashboard.logout:hover {
+    transform: translateY(-5px) scale(1.03);
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 992px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .dashboard-content {
+        margin: 10px;
+        border-radius: 20px;
+        padding: 1.5rem;
+    }
+    .dashboard-actions {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+}
+</style>
+
+<div class="dashboard-wrapper">
+    <!-- ====== SIDEBAR ====== -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="{% static 'images/logo.png' %}" alt="College Logo">
+            <span>☕ Staff Panel</span>
+        </div>
+        <a href="{% url 'staff_dashboard' %}" class="{% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'staff_view_menu' %}" class="{% if request.resolver_match.url_name == 'staff_view_menu' %}active{% endif %}">
+            <i class="fas fa-list"></i> Menu
+        </a>
+        <a href="{% url 'menu_list' %}" class="{% if request.resolver_match.url_name == 'menu_list' %}active{% endif %}">
+            <i class="fas fa-utensils"></i> Today's Menu
+        </a>
+        <a href="{% url 'tokens_today' %}" class="{% if request.resolver_match.url_name == 'tokens_today' %}active{% endif %}">
+            <i class="fas fa-ticket-alt"></i> Tokens
+        </a>
+        <a href="{% url 'logout' %}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- ====== DASHBOARD CONTENT ====== -->
+    <div class="dashboard-content">
+        <h2 class="dashboard-heading">Canteen Staff Dashboard</h2>
+        <p class="welcome-text">👋 Welcome, <strong>{{ request.user.first_name|default:request.user.username }}</strong></p>
+
+        <div class="dashboard-actions">
+            <a href="{% url 'menu_create' %}" class="btn-dashboard">
+                <i class="fas fa-plus-circle"></i>
+                <span>Add Menu Item</span>
+            </a>
+            <a href="{% url 'staff_view_menu' %}" class="btn-dashboard">
+                <i class="fas fa-utensils"></i>
+                <span>View Full Menu</span>
+            </a>
+            <a href="{% url 'menu_list' %}" class="btn-dashboard">
+                <i class="fas fa-list"></i>
+                <span>Today's Menu</span>
+            </a>
+            <a href="{% url 'tokens_today' %}" class="btn-dashboard">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Today's Tokens</span>
+            </a>
+            <a href="{% url 'logout' %}" class="btn-dashboard logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

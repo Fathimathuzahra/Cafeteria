@@ -1,0 +1,281 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}Admin Dashboard | College Canteen{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+       :root {
+    --primary-color: #8B5E3C;       /* Brown */
+    --primary-dark: #5A3E1B;        /* Dark Brown */
+    --accent-color: #F0C05A;        /* Mustard Yellow */
+    --secondary-color: #D2B48C;     /* Tan */
+    --highlight-color: rgba(255, 235, 200, 0.85);
+    --text-color: #4B3621;
+    --white: #fff;
+    --bg-light: #FAF8F0;            /* Cream White */
+}
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #ECD9C6; /* Creamy sidebar */
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar h2 {
+            font-size: 2.1rem;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+            width: 25px;
+            text-align: center;
+        }
+
+        .sidebar a:hover {
+            background-color: rgba(169, 116, 110, 0.1);
+            color: var(--primary-color);
+        }
+
+        .sidebar a.active {
+            background: var(--primary-color);
+            color: var(--white);
+            font-weight: bold;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--white);
+            padding: 12px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-container .logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #f1f1f1;
+            border: 2px solid var(--primary-color);
+        }
+
+        .logo-container .brand-name {
+            font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .navbar ul {
+            list-style: none;
+            display: flex;
+            gap: 25px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar ul li a {
+            color: var(--text-color);
+            font-weight: 500;
+            transition: color 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        .navbar ul li a:hover {
+            color: var(--primary-dark);
+            background-color: rgba(169, 116, 110, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: var(--light-bg);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .welcome-msg {
+            font-size: 1.5rem;
+        }
+
+        .welcome-msg span {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+            color: #888;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+                align-items: center;
+            }
+            .sidebar .brand-name,
+            .sidebar h2,
+            .sidebar a span {
+                display: none;
+            }
+            .sidebar a i {
+                margin-right: 0;
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                overflow-x: auto;
+                padding: 15px 10px;
+            }
+            .logo-container {
+                display: none;
+            }
+            .sidebar a {
+                margin-bottom: 0;
+                margin-right: 10px;
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo-container">
+            <img src="{% static 'images/logo.png' %}" alt="Cafeteria Logo" class="logo">
+            <span class="brand-name">Cafeteria</span>
+        </div>
+
+        <h2>Admin Panel</h2>
+
+        <a href="{% url 'admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+        </a>
+
+        <a href="{% url 'admin_users' %}" class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+            <i class="fas fa-users"></i> <span>Manage Users</span>
+        </a>
+
+        <a href="{% url 'menu' %}" class="{% if request.resolver_match.url_name == 'admin_view_menu' %}active{% endif %}">
+            <i class="fas fa-utensils"></i> <span>Main Menu</span>
+        </a>
+
+        <a href="{% url 'admin_reports' %}" class="{% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">
+            <i class="fas fa-chart-bar"></i> <span>Token Reports</span>
+        </a>
+
+        <a href="{% url 'admin_reviews' %}" class="{% if request.resolver_match.url_name == 'admin_reviews' %}active{% endif %}">
+            <i class="fas fa-comments"></i> <span>Reviews</span>
+        </a>
+
+        <a href="{% url 'admin_menu_list' %}" class="{% if request.resolver_match.url_name == 'admin_menu_list' %}active{% endif %}">
+            <i class="fas fa-utensils"></i> <span>Today Menu</span>
+        </a>
+
+        <a href="{% url 'logout' %}">
+            <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="dashboard-header">
+            <h5 class="welcome-msg">Hello, <span>{{ request.user.username }}</span> 👋</h5>
+        </div>
+
+        {% block content %}
+        <!-- Page specific content will go here -->
+        {% endblock %}
+
+        <div class="footer">
+            © 2025 College Canteen | Admin Panel
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarItems = document.querySelectorAll('.sidebar a');
+            sidebarItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    sidebarItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

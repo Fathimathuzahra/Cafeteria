@@ -1,0 +1,153 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard | College Canteen{% endblock %}
+
+{% block content %}
+<section class="food_section layout_padding-bottom">
+  <div class="container">
+
+    <style>
+      /* Section Styling */
+      body {
+        background-color: var(--light-bg);
+        color: var(--text-color);
+      }
+
+      /* Heading */
+      h2 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      h2::after {
+        content: "";
+        display: block;
+        width: 100px;
+        height: 3px;
+        background: var(--primary-color);
+        margin: 10px auto 20px;
+        border-radius: 5px;
+      }
+      p.text-muted {
+        text-align: center;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        color: #6B4F42;
+      }
+
+      /* Buttons */
+      .btn-custom {
+        border: none;
+        padding: 12px 25px;
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.3s ease-in-out;
+        margin: 8px;
+        font-size: 1rem;
+      }
+      .btn-custom i {
+        margin-right: 8px;
+      }
+      .btn-primary-custom {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: var(--white);
+        box-shadow: 0 2px 6px rgba(107,79,66,0.3);
+      }
+      .btn-primary-custom:hover {
+        background: var(--primary-dark);
+        transform: scale(1.05);
+      }
+      .btn-info-custom {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: var(--white);
+        box-shadow: 0 2px 6px rgba(107,79,66,0.3);
+      }
+      .btn-info-custom:hover {
+        background: var(--primary-dark);
+        transform: scale(1.05);
+      }
+
+      /* Quick Links */
+      .text-center {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      /* Card Styling */
+      .box {
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      }
+      .detail-box h5 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: var(--primary-dark);
+      }
+      .detail-box p {
+        font-size: 1rem;
+        color: #555;
+        min-height: 50px;
+      }
+      .detail-box h6 {
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        margin-top: 10px;
+      }
+
+      /* Images */
+      .img-box img {
+        border-radius: 12px;
+        max-height: 200px;
+        object-fit: cover;
+        transition: transform 0.3s ease-in-out;
+      }
+      .img-box img:hover {
+        transform: scale(1.05);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .text-center {
+          flex-direction: column;
+          align-items: center;
+        }
+        .btn-custom {
+          width: 80%;
+          margin: 8px 0;
+        }
+      }
+    </style>
+
+    <!-- Heading -->
+    <h2>Welcome, {{ request.user.username }}</h2>
+    <p class="text-muted">Here’s a quick overview and access to manage today’s menu.</p>
+
+    <!-- Quick Links -->
+    <div class="text-center">
+      <a href="{% url 'admin_reports' %}" class="btn btn-custom btn-info-custom"><i class="fas fa-chart-line"></i> Token reports</a>
+      <a href="{% url 'admin_menu_list' %}" class="btn btn-custom btn-info-custom"><i class="fas fa-utensils"></i> Today Menu</a>
+      <a href="{% url 'admin_reviews' %}" class="btn btn-custom btn-info-custom"><i class="fas fa-comments"></i> Reviews</a>
+      <a href="{% url 'admin_users' %}" class="btn btn-custom btn-info-custom"><i class="fas fa-users"></i> Manage Users</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+{% endblock %}

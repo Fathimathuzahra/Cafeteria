@@ -1,0 +1,216 @@
+{% extends 'staff/staff_base.html' %}
+{% load token_filters %}
+
+{% block title %}Today's Tokens | Staff Panel{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 style="color:#8B4513;">🎟 {% if show_recent %}Recent Tokens{% else %}Today's Tokens{% endif %}</h3>
+        <small style="color:#A0522D;">Date: {{ today_date }}</small>
+    </div>
+
+    <!-- Token Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card summary-card total">
+                <div class="card-body text-center">
+                    <h6>Total Tokens</h6>
+                    <h4>{{ tokens.count }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card summary-card paid">
+                <div class="card-body text-center">
+                    <h6>Paid</h6>
+                    <h4>{{ tokens|filter_status:'PAID'|length }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card summary-card pending">
+                <div class="card-body text-center">
+                    <h6>Pending</h6>
+                    <h4>{{ tokens|filter_status:'PENDING'|length }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card summary-card used">
+                <div class="card-body text-center">
+                    <h6>Used</h6>
+                    <h4>{{ tokens|filter_status:'USED'|length }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if tokens %}
+    <!-- Token Table -->
+    <div class="card shadow-sm mb-4" style="border: none;">
+        <div class="card-header text-white" style="background-color:#8B4513;">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Token Details</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0" style="color:#3E2C1C;">
+                <thead style="background-color:#FFF3E0;">
+                    <tr>
+                        <th>Token Code</th>
+                        <th>Status</th>
+                        <th>Student</th>
+                        <th>Items</th>
+                        <th>Total (₹)</th>
+                        <th>Order Time</th>
+                        <th>Time Left</th>
+                        <th>Transaction</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for token in tokens %}
+                    <tr style="background-color:{% if token.status == 'PAID' %}#240e6cff{% elif token.status == 'USED' %} #178e29ff{% elif token.status == 'PENDING' %}#FFFDF5{% else %}#F9E6DA{% endif %};">
+                        <td><strong>{{ token.code }}</strong></td>
+                        <td>
+                            <span class="badge" style="background-color:{% if token.status == 'PAID' %} #240e6cff{% elif token.status == 'USED' %} #178e29ff{% elif token.status == 'PENDING' %}#FDE6C4{% else %}#A0522D{% endif %}; color:{% if token.status == 'PENDING' %} #3E2C1C{% else %} #FFF8F0{% endif %};">
+                                {{ token.status|upper }}
+                            </span>
+                        </td>
+                        <td>{{ token.order.user.username }}</td>
+                        <td>
+                            <small>
+                                {% for item in token.order.items.all %}
+                                    {{ item.menu_item.name }}({{ item.quantity }}){% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </small>
+                        </td>
+                        <td>{{ token.order.total_amount }}</td>
+                        <td>{{ token.generated_at|date:"h:i A" }}</td>
+                        <td>
+                            {% if token.time_remaining %}
+                                <span class="badge" style="background-color:{% if token.time_remaining < 30 %}#A0522D{% else %}#FDE6C4{% endif %}; color: #3E2C1C;">
+                                    {{ token.time_remaining }} min
+                                </span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if token.upi_transaction_id %}
+                                <small>{{ token.upi_transaction_id }}</small><br>
+                                <small class="text-muted">{{ token.payment_time|date:"h:i A" }}</small>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Tokens -->
+    <div class="card text-center mt-4 shadow-sm" style="background-color: #FFF3E0; color: #3E2C1C;">
+        <div class="card-body">
+            <i class="fas fa-ticket-alt fa-3x mb-3"></i>
+            <h5 class="card-title">No tokens generated yet</h5>
+            <p class="card-text">Tokens created today or recently will appear here automatically.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="mt-4 d-flex gap-2">
+        <a href="{% url 'staff_dashboard' %}" class="btn btn-sm" style="background-color:#D2691E; color:#FFF8F0;">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <button onclick="window.location.reload()" class="btn btn-sm" style="background-color:#FDE6C4; color:#3E2C1C;">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+    </div>
+</div>
+<style>
+/* Token Summary Cards */
+.summary-card {
+    border: none;
+    border-radius: 15px;
+    color: #FFF8F0;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(139, 69, 19, 0.15);
+}
+.summary-card h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.5px;
+}
+.summary-card h4 {
+    font-weight: 700;
+    font-size: 1.6rem;
+    margin: 0;
+}
+.summary-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 16px rgba(139, 69, 19, 0.25);
+}
+.summary-card.total { background-color: #8B4513; }
+.summary-card.paid { background-color: #D2691E; }
+.summary-card.pending { background-color: #FDE6C4; color: #3E2C1C; }
+.summary-card.used { background-color: #A0522D; }
+
+/* Table Styling */
+.table {
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+.table thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    border-bottom: 2px solid #E5C49D;
+    background-color: #FFF3E0;
+    color: #3E2C1C;
+    letter-spacing: 0.3px;
+}
+.table td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+    background-color: #FFFDF8;
+    border-top: none;
+    padding: 12px 14px;
+}
+.table tbody tr {
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(139, 69, 19, 0.1);
+}
+.table tbody tr:hover {
+    background-color: #FFF8F0;
+    transition: 0.3s ease;
+}
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4em 0.65em;
+    border-radius: 6px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .summary-card {
+        height: 100px;
+        margin-bottom: 10px;
+    }
+    .summary-card h4 {
+        font-size: 1.3rem;
+    }
+}
+</style>
+
+{% endblock %}

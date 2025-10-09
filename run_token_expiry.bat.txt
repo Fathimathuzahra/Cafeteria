@@ -1,0 +1,6 @@
+@echo off
+echo ========================================= >> token_expiry.log
+echo Token expiry started at %date% %time% >> token_expiry.log
+cd C:\Users\USER\MINIPROJECT\djangoevn\canteen
+C:\Users\USER\MINIPROJECT\djangoevn\Scripts\python.exe manage.py expire_tokens >> token_expiry.log 2>&1
+echo Token expiry completed at %time% >> token_expiry.log

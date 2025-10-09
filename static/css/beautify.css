@@ -1,0 +1,209 @@
+/* ===========================
+   VARIABLES (LIGHT THEME COLORS)
+=========================== */
+:root {
+  --bg-color: #FAF3E0;         /* Cream background */
+  --text-color: #3E2723;       /* Coffee brown text */
+  --primary-color: #6A994E;    /* Olive green */
+  --secondary-color: #4E4E4E;  /* Subtle gray text */
+  --header-bg: #FFFFFF;        /* White navbar */
+  --footer-bg: #3E2723;        /* Dark brown footer */
+  --btn-bg: #E76F51;           /* Burnt orange */
+  --btn-hover: #F4A261;        /* Mustard hover */
+  --shadow-color: rgba(62,39,35,0.15); /* Soft brown shadow */
+}
+
+/* ===========================
+   GLOBAL RESET & BASE STYLES
+=========================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-color);
+  color: var(--text-color);
+  overflow-x: hidden;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+section {
+  padding: 60px 20px;
+}
+
+/* ===========================
+   HEADER / NAVBAR
+=========================== */
+.header_section {
+  background-color: var(--header-bg);
+  padding: 20px 0;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.navbar-brand {
+  font-family: 'Dancing Script', cursive;
+  font-size: 32px;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.navbar-brand img {
+  width: 40px;
+  margin-right: 10px;
+}
+
+.navbar-nav .nav-link {
+  color: var(--text-color);
+  margin: 0 10px;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+  color: var(--btn-bg);
+}
+
+/* ===========================
+   HERO AREA
+=========================== */
+.hero_area {
+  background: url("{% static 'images/hero-bg.jpg' %}") no-repeat center/cover;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero-content h1 {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--primary-color);
+  font-family: 'Dancing Script', cursive;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 5px var(--shadow-color);
+}
+
+.hero-content p {
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--secondary-color);
+  margin-bottom: 30px;
+}
+
+.hero-content .btn-warning {
+  background-color: var(--btn-bg);
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  padding: 12px 30px;
+  border-radius: 50px;
+  box-shadow: 0 5px 15px rgba(231,111,81,0.5);
+  transition: all 0.3s ease-in-out;
+}
+
+.hero-content .btn-warning:hover {
+  background-color: var(--btn-hover);
+  color: var(--text-color);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(244,162,97,0.6);
+}
+
+/* ===========================
+   SECTION HEADINGS
+=========================== */
+.heading_container.heading_center h2 {
+  font-family: 'Dancing Script', cursive;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-top: 80px;
+  text-shadow: 1px 1px 3px var(--shadow-color);
+}
+
+/* ===========================
+   FOOTER
+=========================== */
+.footer_section {
+  background-color: var(--footer-bg);
+  color: #FAF3E0;
+  padding: 40px 0;
+  text-align: center;
+}
+
+.footer_section h5 {
+  font-size: 20px;
+  color: var(--btn-hover);
+  margin-bottom: 20px;
+}
+
+.footer-contact {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-contact li {
+  margin: 10px 0;
+  font-size: 14px;
+  color: #E0E0E0;
+}
+
+.footer-contact i {
+  margin-right: 8px;
+  color: var(--btn-bg);
+}
+
+.footer-info {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #ccc;
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+.btn-warning {
+  background-color: var(--btn-bg);
+  border: none;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.btn-warning:hover {
+  background-color: var(--btn-hover);
+  color: var(--text-color);
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 32px;
+  }
+
+  .navbar-nav {
+    flex-direction: column;
+  }
+
+  .navbar-nav .nav-link {
+    margin: 10px 0;
+  }
+}

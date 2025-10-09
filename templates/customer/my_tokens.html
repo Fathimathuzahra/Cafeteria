@@ -1,0 +1,136 @@
+{% extends 'customer/user_base.html' %}
+{% load token_filters %}
+
+{% block title %}My Tokens{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="background:#FFF8F0; color:#3E2C1C; border-radius:18px; padding:30px; box-shadow:0 8px 25px rgba(0,0,0,0.12);">
+
+    <h2 class="text-center mb-4" style="color:#8B4513; font-weight:700; font-size:2rem;">🎟 My Meal Tokens</h2>
+
+    {% if tokens %}
+    <div class="table-responsive">
+        <table class="table table-borderless align-middle shadow-sm rounded-3" style="background:#FDE6C4;">
+            <thead style="background:#8B4513; color:#fff; border-radius:12px;">
+                <tr class="text-center">
+                    <th>🔑 Token Code</th>
+                    <th>🍴 Meal Type</th>
+                    <th>💰 Amount</th>
+                    <th>📌 Status</th>
+                    <th>📅 Order Date</th>
+                    <th>🎟 Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                {% for token in tokens %}
+                <tr style="border-bottom:1px solid #D2691E;">
+                    <td class="fw-bold">{{ token.code|format_token_code }}</td>
+                    <td>{{ token.order.meal_type|format_meal_type }}</td>
+                    <td>₹{{ token.order.total_amount }}</td>
+                    <td>
+                        {% with status_upper=token.status|upper %}
+                            {% if status_upper == 'USED' %}
+                                <span class="badge px-3 py-2 text-white" style="background: #3a8922ff; border-radius:12px;">✅ Used</span>
+                            {% elif status_upper == 'EXPIRED' %}
+                                <span class="badge px-3 py-2 text-white" style="background: linear-gradient(135deg,#dc3545,#ff6b6b); border-radius:12px;">⏰ Expired</span>
+                            {% elif status_upper == 'PAID' %}
+                                <span class="badge px-3 py-2 text-white" style="background: #8B4513; border-radius:12px;">💰 Paid</span>
+                            {% elif status_upper == 'CANCELLED' %}
+                                <span class="badge px-3 py-2 text-white" style="background: #04121eff; border-radius:12px;">❌ Cancelled</span>
+                            {% else %}
+                                {% if token.is_expired %}
+                                    <span class="badge px-3 py-2 text-white" style="background: linear-gradient(135deg,#dc3545,#ff6b6b); border-radius:12px;">⏰ Expired</span>
+                                {% else %}
+                                    <span class="badge px-3 py-2 text-dark" style="background: linear-gradient(135deg,#FFF3E0,#FDE6C4); border-radius:12px;">⏳ {{ token.status|format_status }}</span>
+                                {% endif %}
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td>{{ token.generated_at|date:"d M Y, h:i A" }}</td>
+                    <td>
+                        <a href="{% url 'token_ticket' token.code %}" class="btn btn-sm shadow-sm mb-1" style="border:1px solid #8B4513; color:#8B4513; border-radius:12px;">🎟 View Ticket</a>
+
+                        {% with status_upper=token.status|upper %}
+                        {% if status_upper == 'USED' or status_upper == 'PAID' %}
+                        <button class="btn btn-sm shadow-sm mb-1" style="border:1px solid #D2691E; color:#D2691E; border-radius:12px;" data-bs-toggle="modal" data-bs-target="#reviewModal{{ token.id }}">✍ Add Review</button>
+                        {% else %}
+                        <button class="btn btn-sm shadow-sm mb-1" style="border:1px solid #aaa; color:#aaa; border-radius:12px;" disabled>✍ Add Review</button>
+                        {% endif %}
+
+                        {% if status_upper == 'PENDING' and not token.is_expired %}
+                        <a href="{% url 'cancel_token' token.code %}" class="btn btn-danger btn-sm mb-1" style="border-radius:12px;" onclick="return confirm('Are you sure you want to cancel token {{ token.code|format_token_code }}?')">Cancel</a>
+                        {% else %}
+                        <button class="btn btn-secondary btn-sm mb-1" disabled style="border-radius:12px;">Cancel</button>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                </tr>
+
+                <!-- Review Modal -->
+                <div class="modal fade" id="reviewModal{{ token.id }}" tabindex="-1" aria-labelledby="reviewModalLabel{{ token.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content" style="background:#FFF8F0; color:#3E2C1C; border-radius:12px;">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title" id="reviewModalLabel{{ token.id }}">Add Review for {{ token.order.meal_type|format_meal_type }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="POST" action="{% url 'add_review' token.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="rating{{ token.id }}" class="form-label">Rating</label>
+                                        <select name="rating" id="rating{{ token.id }}" class="form-select" required style="border-radius:8px;">
+                                            <option value="">Select rating</option>
+                                            <option value="1">⭐</option>
+                                            <option value="2">⭐⭐</option>
+                                            <option value="3">⭐⭐⭐</option>
+                                            <option value="4">⭐⭐⭐⭐</option>
+                                            <option value="5">⭐⭐⭐⭐⭐</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="comment{{ token.id }}" class="form-label">Comment</label>
+                                        <textarea name="comment" id="comment{{ token.id }}" class="form-control" rows="3" required style="border-radius:8px;"></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn" style="background:#FDE6C4; color:#3E2C1C; border-radius:8px;" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn" style="background:#8B4513; color:#fff; border-radius:8px;">Submit Review</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-center fs-5" style="color:#555;">😕 You have no tokens yet.</p>
+    {% endif %}
+
+    <div class="text-center mt-4">
+        <a href="{% url 'user_menu_list' %}" class="btn shadow-lg" style="border:1px solid #8B4513; color:#8B4513; border-radius:12px; padding:12px 25px; font-weight:600;">🍴 Order Now</a>
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background: rgba(210,105,30,0.15); /* Cinnamon hover */
+    }
+    .btn:hover {
+        opacity:0.85;
+        transform:translateY(-2px);
+        transition:0.2s;
+    }
+    .modal-content select,
+    .modal-content textarea {
+        border-radius:8px;
+    }
+    @media (max-width:768px){
+        .btn { font-size:0.9rem; padding:10px 18px; margin-bottom:10px; }
+        .table th, .table td { font-size:0.9rem; padding:10px 6px; }
+    }
+</style>
+{% endblock %}

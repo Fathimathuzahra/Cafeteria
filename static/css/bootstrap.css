@@ -1,0 +1,317 @@
+/* College Canteen Light Theme - Color Combo */
+:root {
+  /* Main Palette */
+  --bg-cream: #FAF3E0;
+  --text-dark-brown: #3E2723;
+  --text-charcoal: #4E4E4E;
+  --accent-olive: #6A994E;
+  --cta-orange: #E76F51;
+  --hover-mustard: #F4A261;
+  
+  /* Bootstrap Overrides */
+  --primary: #E76F51;
+  --secondary: #6A994E;
+  --success: #6A994E;
+  --info: #4E4E4E;
+  --warning: #F4A261;
+  --danger: #dc3545;
+  --light: #FAF3E0;
+  --dark: #3E2723;
+}
+
+/* Global Styles */
+body {
+  background-color: var(--bg-cream);
+  color: var(--text-dark-brown);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/* Navbar Styling */
+.navbar-light {
+  background-color: var(--bg-cream) !important;
+  border-bottom: 1px solid rgba(62, 39, 35, 0.1);
+}
+
+.navbar-light .navbar-brand {
+  color: var(--text-dark-brown) !important;
+  font-weight: bold;
+}
+
+.navbar-light .navbar-nav .nav-link {
+  color: var(--text-dark-brown) !important;
+  transition: color 0.3s ease;
+}
+
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar-light .navbar-nav .nav-link:focus {
+  color: var(--accent-olive) !important;
+}
+
+.navbar-light .navbar-toggler {
+  border-color: var(--text-dark-brown);
+}
+
+.navbar-light .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='rgba(62, 39, 35, 0.8)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, var(--bg-cream) 0%, #f8f0d5 100%);
+  padding: 4rem 0;
+  border-bottom: 1px solid rgba(62, 39, 35, 0.1);
+}
+
+.hero-section h1 {
+  color: var(--text-dark-brown);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.hero-section .lead {
+  color: var(--text-charcoal);
+  font-size: 1.25rem;
+}
+
+/* Button Styling */
+.btn-primary {
+  background-color: var(--cta-orange);
+  border-color: var(--cta-orange);
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--hover-mustard);
+  border-color: var(--hover-mustard);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(231, 111, 81, 0.3);
+}
+
+.btn-outline-primary {
+  color: var(--cta-orange);
+  border-color: var(--cta-orange);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--cta-orange);
+  border-color: var(--cta-orange);
+}
+
+/* Menu Cards */
+.menu-card {
+  background: white;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.menu-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.menu-card .card-title {
+  color: var(--accent-olive);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.menu-card .card-text {
+  color: var(--text-charcoal);
+  line-height: 1.6;
+}
+
+.menu-card .price {
+  color: var(--cta-orange);
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.menu-card .card-img-top {
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.menu-card:hover .card-img-top {
+  transform: scale(1.05);
+}
+
+/* Footer Styling */
+.footer {
+  background-color: var(--text-dark-brown);
+  color: var(--bg-cream);
+  padding: 3rem 0 2rem;
+  margin-top: 4rem;
+}
+
+.footer h5 {
+  color: var(--bg-cream);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.footer a {
+  color: var(--bg-cream);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer a:hover {
+  color: var(--hover-mustard);
+}
+
+.footer .social-links a {
+  display: inline-block;
+  margin-right: 1rem;
+  font-size: 1.25rem;
+}
+
+/* Section Headings */
+.section-heading {
+  color: var(--text-dark-brown);
+  font-weight: 700;
+  margin-bottom: 2rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.section-heading::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-color: var(--accent-olive);
+}
+
+/* Badge Styling */
+.badge-primary {
+  background-color: var(--cta-orange);
+}
+
+.badge-success {
+  background-color: var(--accent-olive);
+}
+
+/* Alert Styling */
+.alert-success {
+  background-color: rgba(106, 153, 78, 0.1);
+  border-color: var(--accent-olive);
+  color: var(--text-dark-brown);
+}
+
+.alert-warning {
+  background-color: rgba(244, 162, 97, 0.1);
+  border-color: var(--hover-mustard);
+  color: var(--text-dark-brown);
+}
+
+/* Progress Bars */
+.progress {
+  background-color: rgba(62, 39, 35, 0.1);
+  border-radius: 10px;
+}
+
+.progress-bar {
+  background-color: var(--accent-olive);
+  border-radius: 10px;
+}
+
+/* Form Styling */
+.form-control {
+  border: 1px solid rgba(62, 39, 35, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--accent-olive);
+  box-shadow: 0 0 0 0.2rem rgba(106, 153, 78, 0.25);
+}
+
+.form-label {
+  color: var(--text-dark-brown);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+/* Custom Utilities */
+.text-olive {
+  color: var(--accent-olive) !important;
+}
+
+.text-orange {
+  color: var(--cta-orange) !important;
+}
+
+.bg-cream {
+  background-color: var(--bg-cream) !important;
+}
+
+.border-olive {
+  border-color: var(--accent-olive) !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 2rem 0;
+    text-align: center;
+  }
+  
+  .hero-section h1 {
+    font-size: 2rem;
+  }
+  
+  .menu-card {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Animation for interactive elements */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Loading States */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-olive);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cta-orange);
+}

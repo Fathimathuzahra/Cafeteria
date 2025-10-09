@@ -1,0 +1,242 @@
+{% extends "staff/staff_base.html" %}
+{% load static %}
+{% block content %}
+
+<style>
+/* ====== PAGE CONTAINER ====== */
+.container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #FAF8F0; /* soft cream */
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    color: #4B2E2E; /* deep brown text */
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ====== HEADER ====== */
+header h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #5C3A2E; /* dark coffee */
+    text-align: center;
+    margin-bottom: 5px;
+}
+header p.description {
+    text-align: center;
+    color: #7B5E57; /* muted brown */
+    font-size: 1rem;
+    margin-bottom: 30px;
+}
+
+/* ====== CATEGORY ====== */
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 25px 0 10px 0;
+    padding: 10px 15px;
+    background: #F4E3D7; /* beige */
+    border-left: 5px solid #A0522D; /* sienna brown */
+    border-radius: 8px;
+}
+.category-header span {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #5C3A2E;
+}
+.add-item-btn {
+    text-decoration: none;
+    color: #8B4513;
+    font-weight: bold;
+}
+.add-item-btn:hover {
+    color: #5C3A2E;
+}
+
+/* ====== BADGES ====== */
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #fff;
+}
+.bg-success {
+    background-color: #8B5E3C; /* warm brown */
+}
+.bg-danger {
+    background-color: #B23A48; /* soft red */
+}
+
+/* ====== TABLE ====== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+thead {
+    background: #8B5E3C; /* brown header */
+}
+thead th {
+    color: #fff;
+    padding: 12px;
+    text-align: left;
+    font-size: 0.95rem;
+}
+tbody tr {
+    background: #ffffff;
+    transition: 0.3s;
+}
+tbody tr:hover {
+    background: #F4E3D7;
+}
+td {
+    padding: 12px;
+    border-bottom: 1px solid #E0CFC1;
+    font-size: 0.9rem;
+}
+.actions a {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.3s;
+}
+.edit-btn {
+    background: #A9745B; /* mocha */
+    color: #fff;
+}
+.edit-btn:hover {
+    background: #8B5E3C;
+}
+.delete-btn {
+    background: #B23A48;
+    color: #fff;
+}
+.delete-btn:hover {
+    background: #7A1C28;
+}
+
+/* ====== OUT OF STOCK SECTION ====== */
+.out-of-stock-section {
+    margin-top: 50px;
+    padding: 20px;
+    background: #FDECEA; /* pale red cream */
+    border-radius: 12px;
+    border-left: 5px solid #B23A48;
+}
+.out-of-stock-section h3 {
+    color: #B23A48;
+    margin-bottom: 20px;
+}
+.out-of-stock-section h4 {
+    color: #7A1C28;
+    margin-bottom: 10px;
+}
+</style>
+
+<div class="container">
+    <header>
+        <h1>Today's Menu Management</h1>
+        <p class="description">Manage your menu items with ease</p>
+    </header>
+
+    <div class="main-content">
+
+        <!-- Reset All Stock Button -->
+        <div style="margin-bottom:20px;text-align:right;">
+            <a href="{% url 'reset_all_stock' %}" class="btn btn-outline-success" style="border:1px solid #8B5E3C;color:#8B5E3C;">
+                🔄 Reset All Stock for Today
+            </a>
+        </div>
+
+        <!-- Available Items -->
+        {% for category, items in categorized_available.items %}
+            <div class="category-header">
+                <span>{{ category|title }}</span>
+                <a href="{% url 'menu_create' %}" class="add-item-btn">
+                    ➕ Add New Item
+                </a>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Name</th><th>Category</th>
+                        <th>Price</th><th>Available Qty</th><th>Image</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.category }}</td>
+                        <td>₹{{ item.price }}</td>
+                        <td><span class="badge bg-success">{{ item.available_quantity }}</span></td>
+                        <td>
+                            {% if item.image %}
+                                <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+                            {% else %}
+                                <span style="color:#aaa;">No image</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            <a href="{% url 'menu_edit' item.id %}" class="edit-btn"><i class="fas fa-edit"></i> Edit</a>
+                            <a href="{% url 'menu_delete' item.id %}" class="delete-btn" onclick="return confirm('Are you sure you want to delete this item?');"><i class="fas fa-trash"></i> Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+
+        <!-- Out of Stock Items -->
+        {% if categorized_out_of_stock %}
+        <div class="out-of-stock-section">
+            <h3>Out of Stock / Not Available Today</h3>
+            {% for category, items in categorized_out_of_stock.items %}
+            <h4>{{ category|title }}</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Name</th><th>Category</th>
+                        <th>Price</th><th>Available Qty</th><th>Image</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.category }}</td>
+                        <td>₹{{ item.price }}</td>
+                        <td><span class="badge bg-danger">0</span></td>
+                        <td>
+                            {% if item.image %}
+                                <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+                            {% else %}
+                                <span style="color:#aaa;">No image</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            <a href="{% url 'menu_edit' item.id %}" class="edit-btn"><i class="fas fa-edit"></i> Edit</a>
+                            <a href="{% url 'menu_delete' item.id %}" class="delete-btn" onclick="return confirm('Are you sure you want to delete this item?');"><i class="fas fa-trash"></i> Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

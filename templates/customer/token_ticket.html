@@ -1,0 +1,610 @@
+{% extends "customer/user_base.html" %}
+{% load static token_filters %}
+{% block title %}Meal Token Ticket{% endblock %}
+
+{% block content %}
+<style>
+/* =========================
+   Ticket Container
+============================ */
+.ticket-container {
+    max-width: 480px;
+    margin: 40px auto;
+    background: #FFF8F0; /* Cream beige */
+    border: 3px solid #8B4513; /* Rich brown */
+    border-radius: 20px;
+    padding: 30px;
+    color: #3E2C1C; /* Dark walnut */
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    overflow: hidden;
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+/* =========================
+   Header & Token Code
+============================ */
+.ticket-header {
+    text-align: center;
+    margin-bottom: 25px;
+    border-bottom: 2px dashed #8B4513;
+    padding-bottom: 15px;
+}
+
+.token-code {
+    background: linear-gradient(135deg, #D2691E, #A0522D); /* Cinnamon → Mocha */
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    display: inline-block;
+    margin: 12px 0;
+    font-weight: bold;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(139,69,19,0.3);
+}
+
+.status-container {
+    margin: 16px 0;
+    font-size: 1rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+/* Status colors updated */
+.status-pending { background: #c5c520ff; color: #3E2C1C; }
+.status-paid { background: #8B4513; color: #fff; }
+.status-used { background: #369d21ff; color: #fff; }
+.status-expired { background: #dc3545; color: #fff; }
+.status-cancelled { background: #0e1821ff; color: #fff; }
+
+/* =========================
+   Payment Section
+============================ */
+.payment-section {
+    margin-top: 25px;
+    text-align: center;
+    padding: 25px;
+    background: linear-gradient(135deg, rgba(210,105,30,0.1), rgba(160,82,45,0.1)); /* Cinnamon/Mocha gradient */
+    border-radius: 15px;
+    border: 3px dashed #8B4513;
+}
+
+.qr-container {
+    margin: 20px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 15px;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.payment-instructions {
+    background: rgba(255,255,255,0.95);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    text-align: left;
+    border: 1px solid #e0e0e0;
+}
+
+.payment-instructions ol {
+    margin-bottom: 20px;
+    padding-left: 25px;
+}
+
+.payment-instructions li {
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.upi-form {
+    margin-top: 20px;
+}
+
+.upi-form input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.upi-form input:focus {
+    border-color: #8B4513;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139,69,19,0.1);
+}
+
+.verify-btn {
+    background: linear-gradient(135deg, #D2691E, #A0522D);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(210,105,30,0.3);
+}
+
+.verify-btn:hover {
+    background: linear-gradient(135deg, #A0522D, #8B4513);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(139,69,19,0.4);
+}
+
+.verify-btn:disabled {
+    background: #6c757d;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* =========================
+   Payment Success / Used
+============================ */
+.payment-success {
+    background: linear-gradient(135deg, rgba(210,105,30,0.15), rgba(160,82,45,0.15));
+    padding: 20px;
+    border-radius: 15px;
+    border: 3px solid #8B4513;
+    text-align: center;
+}
+
+.time-remaining {
+    font-size: 1rem;
+    color: #dc3545;
+    font-weight: bold;
+    margin-top: 12px;
+    background: rgba(220,53,69,0.1);
+    padding: 10px 15px;
+    border-radius: 25px;
+    display: inline-block;
+}
+
+.expired-warning {
+    background: linear-gradient(135deg, rgba(220,53,69,0.1), rgba(253,126,126,0.1));
+    padding: 20px;
+    border-radius: 15px;
+    border: 3px solid #dc3545;
+    color: #dc3545;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* =========================
+   Ticket Info & Table
+============================ */
+.ticket-info {
+    margin: 25px 0;
+    padding: 20px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.ticket-info div {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.ticket-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.ticket-table th, .ticket-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.ticket-table th {
+    background: linear-gradient(135deg, #FFF8F0, #FDE6C4);
+    font-weight: 700;
+    color: #3E2C1C;
+}
+
+.ticket-total {
+    text-align: right;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin: 20px 0;
+    padding: 15px;
+    background: linear-gradient(135deg, #FDE6C4, #FFF8F0);
+    border-radius: 12px;
+    color: #3E2C1C;
+    border: 2px solid #8B4513;
+}
+
+.ticket-footer {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px dashed #8B4513;
+    color: #3E2C1C;
+    font-size: 0.9rem;
+}
+
+.debug-info {
+    background: #FFF8F0;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 12px 0;
+    font-size: 0.85rem;
+    color: #666;
+    border-left: 4px solid #8B4513;
+}
+
+/* =========================
+   Quick Actions & Help
+============================ */
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.help-section {
+    background: rgba(210,105,30,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    border-left: 4px solid #8B4513;
+}
+
+.amount-highlight {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    margin: 15px 0;
+    border: 2px solid #D2691E;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* =========================
+   Loading Spinner
+============================ */
+.loading-spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
+
+
+<div class="ticket-container">
+    <div class="ticket-header">
+        <h2>🍽️ Cafeteria</h2>
+        <div class="token-code">{{ token.code|format_token_code }}</div>
+        <div class="status-container">
+            Status:
+            <span class="status-badge status-{{ token.status|lower }}">{{ token.status|format_status }}</span>
+        </div>
+        
+        {% if token.is_expired and token.status|upper == 'PENDING' %}
+        <div class="expired-warning">
+            ⚠️ Token Expired - Please generate a new token
+        </div>
+        {% elif token.status|upper == 'PENDING' %}
+        <div class="time-remaining">
+            ⏰ Expires in: {{ token.time_remaining }} minutes
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Student Information -->
+    <div class="ticket-info">
+        <div><strong>👤 Name:</strong> {{ order.user.username }}</div>
+        <div><strong>📅 Date:</strong> {{ token.generated_at|date:"d M Y" }}</div>
+        <div><strong>⏰ Time:</strong> {{ token.generated_at|date:"h:i A" }}</div>
+        <div><strong>🍽️ Meal Type:</strong> {{ order.meal_type|format_meal_type }}</div>
+    </div>
+
+    <!-- Order Summary -->
+    <table class="ticket-table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>{{ item.menu_item.name }} {% if item.portion == 'HALF' %}(Half){% endif %}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.price }}</td>
+                <td>₹{{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="ticket-total">
+        💰 Total Amount: ₹{{ order.total_amount|default:0 }}
+    </div>
+
+    <!-- UPDATED PAYMENT SECTION -->
+    {% if token.status|upper == 'PENDING' and not token.is_expired %}
+    <div class="payment-section" id="payment-section">
+        <h4>💳 Pay After Getting Food</h4>
+        <p><em>First get your food, then pay using the QR code below</em></p>
+        
+        <!-- Prominent Amount Display -->
+        <div class="amount-highlight">
+            💰 Amount to Pay: <strong>₹{{ order.total_amount }}</strong>
+        </div>
+
+        <div class="qr-container">
+            {% if qr_img %}
+                <img src="data:image/png;base64,{{ qr_img }}" alt="UPI QR Code" style="width: 220px; height: 220px;">
+                <p class="text-muted small mt-2">📱 Scan with any UPI app</p>
+            {% else %}
+                <div class="alert alert-warning">
+                    <small>QR Code not generated. Please contact support.</small>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="payment-instructions">
+            <h5>🔄 How to Pay:</h5>
+            <ol>
+                <li><strong>First, collect your food from the counter</strong></li>
+                <li>Open your UPI app (PhonePe, GPay, Paytm, etc.)</li>
+                <li>Scan the QR code above or send payment to: <strong>YOUR-UPI-ID@upi</strong></li>
+                <li>Pay the exact amount: <strong>₹{{ order.total_amount }}</strong></li>
+                <li>Add reference: <strong>{{ token.code }}</strong></li>
+                <li>Copy the Transaction ID from your UPI app</li>
+                <li>Enter it below and click "Verify Payment"</li>
+            </ol>
+
+            <form method="POST" action="{% url 'process_upi_payment' token.code %}" class="upi-form" id="payment-form">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label"><strong>📱 UPI Transaction ID:</strong></label>
+                    <input type="text" name="upi_transaction_id" 
+                           class="form-control"
+                           placeholder="Enter UPI Transaction ID:" 
+                           required
+                           minlength="6"
+                           maxlength="20"
+                           pattern="[A-Za-z0-9]+"
+                           title="Enter your UPI transaction reference (6-20 alphanumeric characters)">
+                    <div class="form-text">Find this in your UPI app after payment</div>
+                </div>
+                <button type="submit" class="verify-btn" id="verify-btn">
+                    <span class="loading-spinner" id="loading-spinner"></span>
+                    ✅ Verify Payment & Mark as Served
+                </button>
+            </form>
+        </div>
+
+        <!-- Help Section -->
+        <div class="help-section">
+            <h6>🆘 Need Help?</h6>
+            <p class="mb-1">Contact cafeteria staff or visit help desk</p>
+            <small class="text-muted">Payment issues? Show this token to staff</small>
+        </div>
+
+        <!-- Testing Section -->
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #ccc;">
+            <small class="text-muted">For testing only:</small>
+            <div class="mt-2">
+                <form method="POST" action="{% url 'mock_payment_success' token.code %}" style="display: inline-block;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning btn-sm">
+                        🧪 Simulate Payment Success
+                    </button>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+
+    {% elif token.status|upper == 'PAID' %}
+    <div class="payment-success">
+        <h5>✅ Payment Verified</h5>
+        <p><strong>Transaction ID:</strong> {{ token.upi_transaction_id|default:"N/A" }}</p>
+        <p><strong>Paid at:</strong> {{ token.payment_time|date:"h:i A" }}</p>
+        <p class="text-success">🎉 Your meal has been served!</p>
+    </div>
+
+    {% elif token.status|upper == 'USED' %}
+    <div class="payment-success">
+        <h5>🍽️ Meal Served</h5>
+        {% if token.upi_transaction_id %}
+        <p><strong>Transaction ID:</strong> {{ token.upi_transaction_id }}</p>
+        {% endif %}
+        <p><strong>Served at:</strong> {{ token.served_at|date:"h:i A" }}</p>
+        <p class="text-success">🙏 Thank you for your order!</p>
+        
+        <!-- Add Review Button -->
+        <div class="mt-3">
+            <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                ✍ Add Review
+            </button>
+        </div>
+    </div>
+
+    {% elif token.is_expired %}
+    <div class="expired-warning">
+        <h5>⏰ Token Expired</h5>
+        <p>This token has expired and cannot be used for payment.</p>
+        <p>Please place a new order to generate a fresh token.</p>
+    </div>
+
+    {% else %}
+    <div class="alert alert-warning">
+        <h5>⚠️ Payment Option Not Available</h5>
+        <p><strong>Reason:</strong> 
+            {% if token.status|upper != 'PENDING' %}
+            Token status is "{{ token.status }}"
+            {% elif token.is_expired %}
+            Token has expired
+            {% else %}
+            Unknown reason - please contact support
+            {% endif %}
+        </p>
+        <p><strong>What to do:</strong></p>
+        <ul>
+            <li>If token expired, place a new order</li>
+            <li>Contact canteen staff for assistance</li>
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- UPDATED Quick Actions -->
+    <div class="quick-actions">
+        {% if token.status|upper == 'PENDING' and not token.is_expired %}
+        <a href="{% url 'cancel_token' token.code %}" class="action-btn btn btn-outline-danger" 
+           onclick="return confirm('Are you sure you want to cancel token {{ token.code|format_token_code }}?')">
+            ❌ Cancel Token
+        </a>
+        {% endif %}
+        
+        <button onclick="window.print();" class="action-btn btn btn-outline-primary">
+            🖨 Print Ticket
+        </button>
+        
+        <a href="{% url 'my_tokens' %}" class="action-btn btn btn-outline-secondary">
+            📋 View All Tokens
+        </a>
+    </div>
+
+    <div class="ticket-footer">
+        <small>🙏 Thank you for using College Cafeteria! 😊</small>
+        <br>
+        <small>© 2025 College Carleon. All rights reserved.</small>
+    </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalLabel">Add Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'add_review' token.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <select name="rating" class="form-select" required>
+                            <option value="">Select rating</option>
+                            <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                            <option value="4">⭐⭐⭐⭐ Very Good</option>
+                            <option value="3">⭐⭐⭐ Good</option>
+                            <option value="2">⭐⭐ Fair</option>
+                            <option value="1">⭐ Poor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comment</label>
+                        <textarea name="comment" class="form-control" rows="3" placeholder="Share your experience..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-refresh for pending tokens -->
+{% if token.status|upper == 'PENDING' and not token.is_expired %}
+<script>
+// Auto-refresh every 30 seconds to update time remaining
+setTimeout(function() {
+    window.location.reload();
+}, 30000);
+
+// Show payment status if returning from payment
+if (window.location.hash === '#payment') {
+    const paymentSection = document.getElementById('payment-section');
+    if (paymentSection) {
+        paymentSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Form submission loading state
+document.getElementById('payment-form').addEventListener('submit', function() {
+    const verifyBtn = document.getElementById('verify-btn');
+    const spinner = document.getElementById('loading-spinner');
+    
+    verifyBtn.disabled = true;
+    spinner.style.display = 'inline-block';
+    verifyBtn.innerHTML = '<span class="loading-spinner" id="loading-spinner"></span> Processing...';
+});
+
+// Auto-focus on transaction ID input when payment section is visible
+document.addEventListener('DOMContentLoaded', function() {
+    const transactionInput = document.querySelector('input[name="upi_transaction_id"]');
+    if (transactionInput && window.location.hash === '#payment') {
+        transactionInput.focus();
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends 'customer/user_base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+/* ====== PAGE CONTAINER ====== */
+.container { 
+    max-width: 1100px; 
+    margin: 40px auto; 
+    padding: 25px; 
+    background: #FFF8F0; /* primary cream background */
+    border-radius: 18px; 
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12); 
+    color: #3E2C1C; /* dark walnut text */
+    font-family: 'Segoe UI', sans-serif; 
+}
+
+/* ====== HEADER ====== */
+header h1 { 
+    font-size: 2rem; 
+    font-weight: bold; 
+    color: #8B4513; /* primary accent brown */ 
+    text-align: center; 
+    margin-bottom: 5px; 
+}
+header p.description { 
+    text-align: center; 
+    color: #3E2C1C; 
+    font-size: 1rem; 
+    margin-bottom: 30px; 
+}
+
+/* ====== CATEGORY HEADER ====== */
+.category-header { 
+    margin: 30px 0 15px 0; 
+    padding: 12px 18px; 
+    background: #FDE6C4; /* secondary caramel background */
+    border-left: 5px solid #8B4513; 
+    border-radius: 10px; 
+    font-size: 1.2rem; 
+    font-weight: bold; 
+    color: #3E2C1C; 
+}
+
+/* ====== TABLE ====== */
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-bottom: 20px; 
+    overflow: hidden; 
+    border-radius: 10px; 
+    background: #FFFFFF; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+}
+thead { 
+    background: #8B4513; 
+}
+thead th { 
+    color: #FFF; 
+    padding: 12px; 
+    text-align: left; 
+    font-size: 0.95rem; 
+}
+tbody tr { 
+    background: #FFF3E0; 
+    transition: 0.3s; 
+}
+tbody tr:hover { 
+    background: #FFD8A6; /* cinnamon hover */ 
+}
+td { 
+    padding: 12px; 
+    border-bottom: 1px solid #FDE6C4; 
+    font-size: 1.1rem; 
+    vertical-align: middle; 
+}
+
+/* ====== IMAGE ====== */
+.menu-img { 
+    width: 60px; 
+    height: 60px; 
+    border-radius: 8px; 
+    object-fit: cover; 
+    border: 2px solid #8B4513; 
+}
+
+/* ====== ADD TO CART BUTTON ====== */
+.add-to-cart-btn { 
+    background: linear-gradient(45deg, #8B4513, #D2691E); 
+    color: #FFF; 
+    padding: 6px 14px; 
+    border-radius: 8px; 
+    font-size: 0.85rem; 
+    font-weight: bold; 
+    text-decoration: none; 
+    transition: 0.3s; 
+    display: inline-block; 
+    border: none; 
+    cursor: pointer; 
+}
+.add-to-cart-btn:hover { 
+    opacity: 0.9; 
+    transform: scale(1.05); 
+    background: #A0522D; /* mocha hover */ 
+}
+
+/* ====== OUT OF STOCK SECTION ====== */
+.out-of-stock-section { 
+    margin-top: 50px; 
+    padding: 20px; 
+    background: #FDE6C4; 
+    border-radius: 12px; 
+    border-left: 5px solid #D2691E; 
+}
+.out-of-stock-section h3 { 
+    color: #D2691E; 
+    margin-bottom: 20px; 
+}
+
+/* ====== BADGES ====== */
+.badge { 
+    display: inline-block; 
+    padding: 4px 8px; 
+    border-radius: 8px; 
+    font-size: 0.85rem; 
+    font-weight: bold; 
+    color: #FFF; 
+}
+.bg-success { background-color: #8B4513; }
+.bg-danger { background-color: #D2691E; }
+
+/* ====== QUANTITY INPUT ====== */
+.quantity-input { 
+    width: 60px; 
+    padding: 5px; 
+    border-radius: 6px; 
+    border: 1px solid #8B4513; 
+    background: #FDE6C4; 
+    color: #3E2C1C; 
+    margin-right: 5px; 
+}
+
+/* ====== FORM STYLES ====== */
+.cart-form { display: inline-block; margin-bottom: 5px; }
+</style>
+
+<div class="container">
+    <header>
+        <h1>🍽 Today's Menu</h1>
+        <p class="description">Order your favorite meals easily</p>
+    </header>
+
+    <div class="main-content">
+        {% if categorized_available %}
+            {% for category, items in categorized_available.items %}
+                <div class="category-header">{{ category|title }}</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Price</th>
+                            <th>Image</th>
+                            <th>Count</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td style="color:#3E2C1C; font-size:0.85rem;">{{ item.description|truncatewords:12 }}</td>
+                            <td>₹{{ item.price }}</td>
+                            <td>
+                                {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="menu-img">
+                                {% else %}
+                                    <span style="color:#888;">No image</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <input type="number" id="quantity_{{ item.id }}" name="quantity" min="1" class="quantity-input" placeholder="Enter qty">
+                            </td>
+                            <td>
+                                {% if category|lower == "lunch" %}
+                                    <form method="POST" action="{% url 'cart_add' item.id %}" class="cart-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1" id="hidden_quantity_full_{{ item.id }}">
+                                        <input type="hidden" name="portion" value="full">
+                                        <button type="submit" class="add-to-cart-btn" onclick="updateQuantity('full', {{ item.id }})">Add Full</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'cart_add' item.id %}" class="cart-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1" id="hidden_quantity_half_{{ item.id }}">
+                                        <input type="hidden" name="portion" value="half">
+                                        <button type="submit" class="add-to-cart-btn" onclick="updateQuantity('half', {{ item.id }})">Add Half</button>
+                                    </form>
+                                {% else %}
+                                    <form method="POST" action="{% url 'cart_add' item.id %}" class="cart-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1" id="hidden_quantity_{{ item.id }}">
+                                        <input type="hidden" name="portion" value="full">
+                                        <button type="submit" class="add-to-cart-btn" onclick="updateQuantity('full', {{ item.id }})">Add to Cart</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align:center; color:#888;">
+                                No available items in this category today.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endfor %}
+        {% else %}
+            <p class="text-center" style="color:#3E2C1C;">No menu items available today.</p>
+        {% endif %}
+
+        {% if categorized_out_of_stock %}
+        <div class="out-of-stock-section">
+            <h3>Currently Out of Stock</h3>
+            {% for category, items in categorized_out_of_stock.items %}
+                <div class="category-header" style="border-left-color: #D2691E;">{{ category|title }}</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Image</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td style="color:#3E2C1C; font-size:0.85rem;">{{ item.description|truncatewords:12 }}</td>
+                            <td>₹{{ item.price }}</td>
+                            <td><span class="badge bg-danger">Out of Stock</span></td>
+                            <td>
+                                {% if item.image %}
+                                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="menu-img">
+                                {% else %}
+                                    <span style="color:#888;">No image</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function updateQuantity(portion, itemId) {
+    const quantityInput = document.getElementById('quantity_' + itemId);
+    const hiddenInput = document.getElementById('hidden_quantity_' + (portion !== 'full' ? portion + '_' : '') + itemId);
+    if (quantityInput && hiddenInput) {
+        let quantity = parseInt(quantityInput.value);
+        if (isNaN(quantity) || quantity < 1) quantity = 1;
+        hiddenInput.value = quantity;
+    }
+}
+</script>
+{% endblock %}

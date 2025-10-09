@@ -1,0 +1,199 @@
+{% extends 'staff/staff_base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="food_section">
+  <div class="container">
+
+    <!-- Heading -->
+    <div class="heading_container heading_center text-center mb-5">
+      <h2>🍽️ College Canteen Menu</h2>
+      <p>Browse our delicious items by category</p>
+    </div>
+
+    <!-- Category Filter Bar -->
+    <div class="filter-bar text-center mb-4">
+      <button class="btn category-btn active" data-category="all">All</button>
+      {% for category, items in categorized_items.items %}
+        <button class="btn category-btn" data-category="{{ category|slugify }}">{{ category }}</button>
+      {% endfor %}
+    </div>
+
+    <!-- Menu Items Grid -->
+    <div class="row g-4" id="menu-container">
+      {% for category, items in categorized_items.items %}
+        {% for item in items %}
+          <div class="col-md-4 col-sm-6 menu-item" data-category="{{ category|slugify }}">
+            <div class="card food-card h-100 text-dark rounded-3" style="animation-delay: {{ forloop.counter0|add:"0.2"|floatformat:1 }}s;">
+              
+              {% if item.image %}
+                <img src="{{ item.image.url }}" class="card-img-top food-img" alt="{{ item.name }}">
+              {% else %}
+                <img src="{% static 'images/default_food.jpg' %}" class="card-img-top food-img" alt="default">
+              {% endif %}
+
+              <div class="card-body d-flex flex-column justify-content-between">
+                <div>
+                  <h5 class="card-title">{{ item.name }}</h5>
+                  {% if item.description %}
+                    <p class="card-text">{{ item.description|truncatewords:12 }}</p>
+                  {% endif %}
+                  <p class="price">₹{{ item.price }}</p>
+                </div>
+
+                {% if request.user.role == "canteenstaff" %}
+                  <div class="d-flex justify-content-center gap-2 mt-3">
+                    <a href="{% url 'edit_main_menu_item' item.id %}" class="btn btn-sm btn-success">✏️ Edit</a>
+                    <a href="{% url 'main_menu_delete' item.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this item?');">🗑️ Delete</a>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+<style>
+:root {
+    --primary-bg: #FFF8F0;       /* Cream beige */
+    --secondary-bg: #FDE6C4;     /* Light caramel */
+    --primary-accent: #8B4513;   /* Rich brown */
+    --secondary-accent: #D2691E; /* Cinnamon orange */
+    --hover-accent: #A0522D;     /* Mocha brown */
+    --card-bg: #FFFFFF;           /* White */
+    --text-dark: #3E2C1C;        /* Dark walnut */
+    --alert-bg: #FFF3E0;          /* Light orange cream */
+}
+
+.food_section {
+    background: linear-gradient(145deg, var(--primary-bg), var(--secondary-bg));
+    padding: 50px 15px;
+    border-radius: 20px;
+    margin: 20px auto;
+    max-width: 1200px;
+}
+
+/* Heading */
+.heading_container h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--primary-accent);
+    margin-bottom: 10px;
+    opacity: 0;
+    animation: fadeInUp 1s ease forwards;
+}
+.heading_container p {
+    color: var(--text-dark);
+    font-size: 1rem;
+    opacity: 0;
+    animation: fadeInUp 1s ease 0.2s forwards;
+}
+
+/* Category buttons */
+.filter-bar .btn {
+    margin: 5px;
+    border-radius: 50px;
+    padding: 8px 18px;
+    border: 2px solid var(--primary-accent);
+    color: var(--primary-accent);
+    background-color: var(--card-bg);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+.filter-bar .btn.active,
+.filter-bar .btn:hover {
+    background-color: var(--primary-accent);
+    color: var(--card-bg);
+    border-color: var(--hover-accent);
+    transform: scale(1.05);
+}
+
+/* Cards */
+.food-card {
+    transition: all 0.4s ease;
+    border: none;
+    background: var(--card-bg);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border-radius: 15px;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s ease forwards;
+}
+.food-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 14px 35px rgba(139,69,19,0.25);
+}
+.food-img {
+    height: 180px;
+    object-fit: cover;
+    border-bottom: 2px solid var(--secondary-accent);
+    transition: transform 0.5s ease;
+}
+.food-card:hover .food-img {
+    transform: scale(1.05);
+}
+.card-body {
+    padding: 15px;
+}
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary-accent);
+    margin-bottom: 8px;
+}
+.card-text {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 6px;
+}
+.price {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--secondary-accent);
+}
+
+/* Fade animation */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .food-img { height: 160px; }
+}
+@media (max-width: 576px) {
+    .food-img { height: 140px; }
+    .card-title { font-size: 1rem; }
+    .card-text { font-size: 0.85rem; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const buttons = document.querySelectorAll('.category-btn');
+  const items = document.querySelectorAll('.menu-item');
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      buttons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      const category = button.getAttribute('data-category');
+
+      items.forEach(item => {
+        if(category === 'all' || item.getAttribute('data-category') === category){
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+});
+</script>
+{% endblock %}

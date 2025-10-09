@@ -1,0 +1,147 @@
+{% extends 'staff/staff_base.html' %}
+
+{% block title %}
+  {% if mode %}Edit{% else %}Add{% endif %} Menu Item | Staff
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-lg rounded-4 p-4" style="background-color: #ffffff; border: 1px solid #d4edda;">
+    
+    <div class="text-center mb-4">
+      <div class="icon-circle mb-3">
+        {% if mode %}
+          <i class="fas fa-edit text-white"></i>
+        {% else %}
+          <i class="fas fa-plus text-white"></i>
+        {% endif %}
+      </div>
+      <h2 class="fw-bold text-success">
+        {% if mode %}Edit Menu Item{% else %}Add New Menu Item{% endif %}
+      </h2>
+      <p class="text-muted">
+        {% if mode %}Update your existing menu item{% else %}Add a delicious new item to your menu{% endif %}
+      </p>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show text-center rounded-3 mb-4">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="{{ form.name.id_for_label }}" class="form-label">🍽 Item Name</label>
+          {{ form.name }}
+
+          <label for="{{ form.price.id_for_label }}" class="form-label mt-3">💰 Price (₹)</label>
+          {{ form.price }}
+
+          <label for="{{ form.category.id_for_label }}" class="form-label mt-3">📂 Category</label>
+          {{ form.category }}
+
+          <label for="{{ form.available_quantity.id_for_label }}" class="form-label mt-3">📦 Available Quantity</label>
+          {{ form.available_quantity }}
+        </div>
+
+        <div class="col-md-6">
+          <label for="{{ form.description.id_for_label }}" class="form-label">📝 Description</label>
+          {{ form.description }}
+
+          <label for="{{ form.image.id_for_label }}" class="form-label mt-3">🖼 Item Image</label>
+          {{ form.image }}
+
+          <div class="form-check form-switch mt-4">
+            {{ form.available }}
+            <label for="{{ form.available.id_for_label }}" class="form-check-label">🔄 Mark as Available</label>
+          </div>
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger text-center mt-4 rounded-3">
+          {% for error in form.non_field_errors %}
+            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'staff_view_menu' %}" class="btn btn-outline-success">
+          ← Back to Menu
+        </a>
+        <button type="submit" class="btn btn-success">
+          {% if mode %}💾 Update Item{% else %}➕ Add Item{% endif %}
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<style>
+  body {
+    background-color: #f0fdf4;
+  }
+  .card {
+    border: none;
+  }
+  .icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4caf50, #81c784);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    margin: 0 auto;
+  }
+  .form-label {
+    font-weight: 600;
+    color: #2e7d32;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #c8e6c9;
+    border-radius: 8px;
+    background-color: #f8fff8;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    outline: none;
+    background-color: #ffffff;
+  }
+  .btn-success {
+    background: linear-gradient(135deg, #4caf50, #81c784);
+    border: none;
+    font-weight: 600;
+    padding: 10px 20px;
+    transition: transform 0.2s;
+  }
+  .btn-success:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  }
+  .btn-outline-success {
+    border-color: #4caf50;
+    color: #4caf50;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  .btn-outline-success:hover {
+    background-color: #4caf50;
+    color: #ffffff;
+  }
+</style>
+
+{% endblock %}

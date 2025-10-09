@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lunch Menu | College Canteen</title>
+  <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+  <style>
+    body {
+      background-color: #222831;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .menu-section {
+      max-width: 800px;
+      margin: auto;
+      padding: 30px 15px;
+    }
+
+    .section-title {
+      color: #ffbe33;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .menu-card {
+      background-color: #393e46;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      transition: transform 0.3s;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .menu-image {
+      width: 120px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-right: 15px;
+    }
+
+    .menu-content h5 {
+      color: #ffbe33;
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .menu-content p {
+      color: #ccc;
+      font-size: 14px;
+      margin: 5px 0;
+    }
+
+    .price {
+      color: #00ffcc;
+      font-weight: bold;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="menu-section">
+    <h2 class="section-title">🍽️ Lunch Menu</h2>
+
+    {% for item in lunch_items %}
+      <div class="menu-card">
+       <img src="{% static item.image %}" alt="{{ item.name }}" class="menu-image">
+
+
+        <div class="menu-content">
+          <h5>{{ item.name }}</h5>
+          <p>{{ item.description }}</p>
+          <div class="price">₹{{ item.price }}</div>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-center">No lunch items found.</p>
+    {% endfor %}
+  </div>
+</body>
+</html>

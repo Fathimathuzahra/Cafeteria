@@ -1,0 +1,22 @@
+{% block content %}
+<div style="text-align: center; padding: 40px;">
+    {% if role == 'staff' %}
+        <h2 style="color: var(--primary-dark);">Welcome, College Staff!</h2>
+        {% if token_active %}
+            <p style="color: green; font-weight: 500;">Lunch token is active. You can place your order now.</p>
+        {% else %}
+            <p style="color: red; font-weight: 500;">Sorry, you can activate lunch token only from 12:00 PM to 3:00 PM.</p>
+        {% endif %}
+    {% elif role == 'student' %}
+        <h2 style="color: var(--primary-dark);">Welcome, Student!</h2>
+        {% if token_active %}
+            <p style="color: green; font-weight: 500;">Lunch token is active. You can place your order now.</p>
+        {% else %}
+            <p style="color: red; font-weight: 500;">Sorry, you can activate lunch token only from 12:00 PM to 2:00 PM.</p>
+        {% endif %}
+    {% else %}
+        <h2 style="color: var(--primary-dark);">Unknown User</h2>
+        <p style="color: red; font-weight: 500;">Please check your login credentials.</p>
+    {% endif %}
+</div>
+{% endblock %}
