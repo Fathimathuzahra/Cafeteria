@@ -3,24 +3,92 @@
 {% block title %}Add User{% endblock %}
 
 {% block content %}
-<h3>Add New User</h3>
-<form method="POST">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label>Username</label>
-        <input type="text" name="username" class="form-control" required>
-    </div>
-    <div class="mb-3">
-        <label>Password</label>
-        <input type="password" name="password" class="form-control" required>
-    </div>
-    <div class="mb-3">
-        <label>Role</label>
-        <select name="role" class="form-control" required>
-            <option value="user">Student/Faculty</option>
-            <option value="canteenstaff">Canteen Staff</option>
-        </select>
-    </div>
-    <button type="submit" class="btn btn-warning">Add User</button>
-</form>
+<style>
+    .add-user-container {
+        background: #fffaf3;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        padding: 40px;
+        max-width: 600px;
+        margin: 40px auto;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .add-user-container:hover {
+        box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        transform: translateY(-3px);
+    }
+
+    .add-user-container h3 {
+        color: #5a3825;
+        font-weight: 700;
+        margin-bottom: 25px;
+        text-align: center;
+        border-bottom: 2px solid #deb887;
+        padding-bottom: 10px;
+    }
+
+    label {
+        color: #5a3825;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        border: 1px solid #d2b48c;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #b8860b;
+        box-shadow: 0 0 5px rgba(184, 134, 11, 0.3);
+    }
+
+    .btn-warning {
+        background: linear-gradient(90deg, #d2a679, #b8860b);
+        color: white;
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 20px;
+        width: 100%;
+        transition: 0.3s;
+    }
+
+    .btn-warning:hover {
+        background: linear-gradient(90deg, #b8860b, #a0522d);
+        transform: scale(1.03);
+        box-shadow: 0 4px 10px rgba(184, 134, 11, 0.3);
+    }
+
+    .mb-3 {
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="add-user-container">
+    <h3>Add New User</h3>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label>Username</label>
+            <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+        </div>
+        <div class="mb-3">
+            <label>Password</label>
+            <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+        </div>
+        <div class="mb-3">
+            <label>Role</label>
+            <select name="role" class="form-control" required>
+                <option value="user">Student / Faculty</option>
+                <option value="canteenstaff">Canteen Staff</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-warning">Add User</button>
+    </form>
+</div>
 {% endblock %}

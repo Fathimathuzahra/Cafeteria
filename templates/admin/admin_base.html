@@ -9,208 +9,221 @@
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-       :root {
-    --primary-color: #8B5E3C;       /* Brown */
-    --primary-dark: #5A3E1B;        /* Dark Brown */
-    --accent-color: #F0C05A;        /* Mustard Yellow */
-    --secondary-color: #D2B48C;     /* Tan */
-    --highlight-color: rgba(255, 235, 200, 0.85);
-    --text-color: #4B3621;
-    --white: #fff;
-    --bg-light: #FAF8F0;            /* Cream White */
-}
+    :root {
+        --primary-accent: #8B4513; 
+        --secondary-accent: #D2691E; 
+        --hover-accent: #A0522D; 
+        --bg-cream: #FFF8F0;
+        --bg-light: #FDE6C4;
+        --text-dark: #3E2C1C;
+        --text-medium: #5D4735;
+        --text-light: #7F5A3F;
+        --text-white: #FFFFFF;
+        --border-light: rgba(139,69,19,0.15);
+        --gradient-primary: linear-gradient(135deg, #8B4513, #D2691E);
+        --gradient-accent: linear-gradient(135deg, #D2691E, #A0522D);
+        --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.08);
+        --shadow-medium: 0 15px 40px rgba(0, 0, 0, 0.12);
+        --shadow-strong: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
 
-        body {
-            margin: 0;
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--light-bg);
-            color: var(--text-color);
-            display: flex;
-            min-height: 100vh;
-        }
+    body {
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-cream);
+        color: var(--text-dark);
+        display: flex;
+        min-height: 100vh;
+    }
 
-        /* Sidebar */
-        .sidebar {
-            width: 260px;
-            background: #ECD9C6; /* Creamy sidebar */
-            padding: 25px 20px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
+    /* Sidebar */
+    .sidebar {
+        width: 260px;
+        background: var(--bg-light);
+        padding: 25px 20px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow-medium);
+        transition: all 0.3s ease;
+    }
 
-        .sidebar h2 {
-            font-size: 2.1rem;
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 30px;
-        }
+    .sidebar h2 {
+        font-size: 2.1rem;
+        color: var(--primary-accent);
+        text-align: center;
+        margin-bottom: 30px;
+    }
 
-        .sidebar a {
-            color: var(--text-color);
-            text-decoration: none;
-            padding: 12px 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            transition: all 0.3s;
-        }
+    .sidebar a {
+        color: var(--text-dark);
+        text-decoration: none;
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s;
+    }
 
-        .sidebar a i {
-            margin-right: 10px;
-            font-size: 1.2rem;
-            width: 25px;
-            text-align: center;
-        }
+    .sidebar a i {
+        margin-right: 10px;
+        font-size: 1.2rem;
+        width: 25px;
+        text-align: center;
+    }
 
-        .sidebar a:hover {
-            background-color: rgba(169, 116, 110, 0.1);
-            color: var(--primary-color);
-        }
+    .sidebar a:hover {
+        background-color: var(--primary-accent);
+        color: var(--text-white);
+        box-shadow: var(--shadow-soft);
+    }
 
-        .sidebar a.active {
-            background: var(--primary-color);
-            color: var(--white);
-            font-weight: bold;
-        }
+    .sidebar a.active {
+        background: var(--gradient-primary);
+        color: var(--text-white);
+        font-weight: bold;
+        box-shadow: var(--shadow-soft);
+    }
 
-        /* Navbar */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--white);
-            padding: 12px 40px;
-            position: sticky;
-            top: 0;
-            z-index: 999;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-bottom: 2px solid var(--primary-color);
-        }
+    /* Navbar */
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--bg-cream);
+        padding: 12px 40px;
+        position: sticky;
+        top: 0;
+        z-index: 999;
+        box-shadow: var(--shadow-soft);
+        border-bottom: 2px solid var(--border-light);
+    }
 
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
+    .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
 
-        .logo-container .logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: #f1f1f1;
-            border: 2px solid var(--primary-color);
-        }
+    .logo-container .logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 3px solid var(--primary-accent);
+        box-shadow: var(--shadow-soft);
+    }
 
-        .logo-container .brand-name {
-            font-family: 'Playfair Display', serif;
-        font-size: 2.5rem;
+    .logo-container .brand-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
         font-weight: 700;
-        color: var(--primary-color);
-        transition: color 0.3s ease, transform 0.3s ease;
-        }
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        transition: all 0.3s ease;
+    }
 
-        .navbar ul {
-            list-style: none;
-            display: flex;
-            gap: 25px;
-            margin: 0;
-            padding: 0;
-        }
+    .navbar ul {
+        list-style: none;
+        display: flex;
+        gap: 25px;
+        margin: 0;
+        padding: 0;
+    }
 
-        .navbar ul li a {
-            color: var(--text-color);
-            font-weight: 500;
-            transition: color 0.3s ease;
-            padding: 8px 15px;
-            border-radius: 20px;
-        }
+    .navbar ul li a {
+        color: var(--text-medium);
+        font-weight: 500;
+        padding: 8px 15px;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
 
-        .navbar ul li a:hover {
-            color: var(--primary-dark);
-            background-color: rgba(169, 116, 110, 0.1);
-        }
+    .navbar ul li a:hover {
+        color: var(--primary-accent);
+        background-color: rgba(139,69,19,0.08);
+    }
 
-        /* Main Content */
-        .main-content {
-            flex-grow: 1;
-            padding: 30px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            background-color: var(--light-bg);
-        }
+    /* Main Content */
+    .main-content {
+        flex-grow: 1;
+        padding: 30px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        background-color: var(--bg-cream);
+    }
 
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .welcome-msg {
+        font-size: 1.5rem;
+        color: var(--text-dark);
+    }
+
+    .welcome-msg span {
+        font-weight: bold;
+        color: var(--primary-accent);
+    }
+
+    .footer {
+        text-align: center;
+        padding: 20px;
+        margin-top: auto;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .sidebar {
+            width: 80px;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
         }
+        .sidebar .brand-name,
+        .sidebar h2,
+        .sidebar a span {
+            display: none;
+        }
+        .sidebar a i {
+            margin-right: 0;
+            font-size: 1.4rem;
+        }
+    }
 
-        .welcome-msg {
-            font-size: 1.5rem;
+    @media (max-width: 768px) {
+        body {
+            flex-direction: column;
         }
-
-        .welcome-msg span {
-            font-weight: bold;
-            color: var(--primary-color);
+        .sidebar {
+            width: 100%;
+            height: auto;
+            flex-direction: row;
+            overflow-x: auto;
+            padding: 15px 10px;
         }
-
-        .footer {
-            text-align: center;
-            padding: 20px;
-            margin-top: auto;
-            color: #888;
-            font-size: 0.9rem;
-            border-top: 1px solid var(--border-color);
+        .logo-container {
+            display: none;
         }
-
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .sidebar {
-                width: 80px;
-                align-items: center;
-            }
-            .sidebar .brand-name,
-            .sidebar h2,
-            .sidebar a span {
-                display: none;
-            }
-            .sidebar a i {
-                margin-right: 0;
-                font-size: 1.4rem;
-            }
+        .sidebar a {
+            margin-bottom: 0;
+            margin-right: 10px;
+            padding: 10px 15px;
         }
-
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            .sidebar {
-                width: 100%;
-                height: auto;
-                flex-direction: row;
-                overflow-x: auto;
-                padding: 15px 10px;
-            }
-            .logo-container {
-                display: none;
-            }
-            .sidebar a {
-                margin-bottom: 0;
-                margin-right: 10px;
-                padding: 10px 15px;
-            }
-        }
+    }
     </style>
+     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Sidebar -->

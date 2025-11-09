@@ -1,23 +1,15 @@
 # canteen_app/forms.py
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import MenuItem
-
 from django.contrib.auth.forms import AuthenticationForm
-User = get_user_model()
-
-from django import forms
 from django.core.exceptions import ValidationError
-from django.contrib.auth import get_user_model
-import re
+from .models import MenuItem, Review
 
 User = get_user_model()
 
-from django import forms
-from django.core.exceptions import ValidationError
-import re
-from .models import User
-
+# -------------------
+# Registration Form
+# -------------------
 class RegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     confirm_password = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
@@ -29,7 +21,6 @@ class RegisterForm(forms.ModelForm):
     def clean_username(self):
         username = self.cleaned_data['username'].lower().replace("-", "").strip()
     
-
         # If username starts with student or faculty prefix, enforce format
         if username.startswith("AWHCS"):
             student_number = username.replace("AWHCS", "")
@@ -56,10 +47,8 @@ class RegisterForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        # In RegisterForm.save():
         username = self.cleaned_data['username'].lower().replace("-", "").strip()
         user.username = username
-
 
         # Assign role based on username pattern
         if username.startswith("AWHCS") or username.startswith("AWHCF"):
@@ -83,24 +72,77 @@ class LoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
     )
 
+# -------------------
+# Review Form (NEW - ADD THIS)
+# -------------------
+class ReviewForm(forms.ModelForm):
+    RATING_CHOICES = [
+        (1, '1 Star - Poor'),
+        (2, '2 Stars - Fair'),
+        (3, '3 Stars - Good'),
+        (4, '4 Stars - Very Good'),
+        (5, '5 Stars - Excellent')
+    ]
+    
+    rating = forms.ChoiceField(
+        choices=RATING_CHOICES,
+        widget=forms.RadioSelect,
+        initial=5
+    )
+    
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            'comment': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Share your experience with the canteen service...',
+                'class': 'form-control'
+            }),
+        }
+        labels = {
+            'comment': 'Your Review',
+            'rating': 'Rating'
+        }
+
+    def clean_rating(self):
+        rating = self.cleaned_data['rating']
+        # Convert to integer since ChoiceField returns string
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            raise forms.ValidationError("Rating must be between 1 and 5")
+        return rating
+
+    def clean_comment(self):
+        comment = self.cleaned_data['comment']
+        if not comment.strip():
+            raise forms.ValidationError("Comment cannot be empty")
+        if len(comment) > 500:
+            raise forms.ValidationError("Comment too long (max 500 characters)")
+        return comment
 
 # -------------------
-# Menu Form (Staff/Admin)
+# Menu Forms (Staff/Admin)
 # -------------------
-# canteen_app/forms.py
-from django import forms
-from .models import MenuItem
-
 class MainMenuForm(forms.ModelForm):
     class Meta:
         model = MenuItem
         fields = ["name", "description", "price", "category", "image"]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'price': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+        }
 
 class DailyMenuForm(forms.ModelForm):
     class Meta:
         model = MenuItem
         fields = ["name", "description", "price", "category", "image",
                   "available_quantity", "available"]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'price': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'available_quantity': forms.NumberInput(attrs={'min': '0'}),
+        }
 
 # -------------------
 # Order Form (Student Checkout)

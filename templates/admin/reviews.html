@@ -1,64 +1,270 @@
 {% extends 'admin/admin_base.html' %}
+{% load static %}
 
 {% block title %}Admin Reviews | College Canteen{% endblock %}
 
+{% block extra_css %}
+<style>
+:root {
+    --primary-accent: #8B4513; /* Saddle Brown */
+    --secondary-accent: #D2691E; /* Chocolate */
+    --hover-accent: #A0522D;
+    --bg-cream: #FFF8F0;
+    --bg-light: #FFF3E6;
+    --text-dark: #3E2C1C;
+    --text-medium: #5D4735;
+    --text-light: #7F5A3F;
+    --text-white: #FFFFFF;
+    --border-light: rgba(139, 69, 19, 0.15);
+    --gradient-primary: linear-gradient(135deg, #8B4513, #D2691E);
+    --gradient-accent: linear-gradient(135deg, #D2691E, #A0522D);
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0 10px 35px rgba(0, 0, 0, 0.12);
+}
+
+/* Container */
+.reviews-container {
+    background: var(--bg-cream);
+    border-radius: 20px;
+    box-shadow: var(--shadow-medium);
+    padding: 35px;
+    max-width: 1400px;
+    margin: 30px auto;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Header */
+.reviews-container h2 {
+    text-align: center;
+    font-size: 2.2rem;
+    color: var(--primary-accent);
+    font-weight: 700;
+    margin-bottom: 2.5rem;
+}
+
+/* Stats Section */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: var(--bg-light);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-soft);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stat-label {
+    color: var(--text-medium);
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+/* Table Container */
+.table-responsive {
+    margin-top: 1.5rem;
+    border-radius: 15px;
+    overflow-x: auto;
+    box-shadow: var(--shadow-soft);
+}
+
+/* Table */
+.reviews-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.reviews-table th, .reviews-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.reviews-table thead {
+    background: var(--gradient-primary);
+    color: var(--text-white);
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+.reviews-table tbody tr {
+    background: var(--bg-light);
+    color: var(--text-dark);
+    transition: 0.3s ease;
+}
+
+.reviews-table tbody tr:nth-child(even) {
+    background: #FFF0DC;
+}
+
+.reviews-table tbody tr:hover {
+    background: var(--hover-accent);
+    color: var(--text-white);
+    transform: scale(1.01);
+}
+
+/* Rating Badge */
+.rating-badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    background: var(--gradient-accent);
+    color: var(--text-white);
+    font-weight: 700;
+}
+
+/* Visibility Badge */
+.visibility-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    font-weight: 600;
+    color: var(--text-white);
+}
+
+.visible-true {
+    background: var(--primary-accent);
+}
+
+.visible-false {
+    background: #bbb;
+    color: #333;
+}
+
+/* Button */
+.action-btn {
+    padding: 0.35rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border: 1px solid var(--primary-accent);
+    color: var(--primary-accent);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: var(--primary-accent);
+    color: var(--text-white);
+}
+
+/* Empty Alert */
+.alert {
+    border: 1px solid var(--primary-accent);
+    color: var(--primary-accent);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .reviews-container {
+        padding: 20px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .reviews-table th, .reviews-table td {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5" style="background: var(--card-bg); padding: 30px; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.15); font-family: 'Poppins', sans-serif;">
+<div class="reviews-container">
+    <h2>💬 User Reviews</h2>
 
-    <h2 class="text-center mb-4" style="color: var(--primary-color); font-weight: 700; font-size: 2.25rem;">
-        💬 User Reviews
-    </h2>
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_reviews }}</div>
+            <div class="stat-label">Total Reviews</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ visible_reviews }}</div>
+            <div class="stat-label">Visible Reviews</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ average_rating }}</div>
+            <div class="stat-label">Average Rating</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ today_reviews }}</div>
+            <div class="stat-label">Today's Reviews</div>
+        </div>
+    </div>
 
-    {% if reviews %}
-    <div class="table-responsive shadow rounded">
-        <table class="table table-hover table-bordered text-center" style="border-color: var(--primary-color); background: var(--light-bg);">
-            <thead style="background-color: var(--primary-color); color: var(--white); font-weight: 700;">
+    <!-- Reviews Table -->
+    <div class="table-responsive">
+        <table class="reviews-table">
+            <thead>
                 <tr>
                     <th>User</th>
                     <th>Rating</th>
                     <th>Comment</th>
+                    <th>Date</th>
                     <th>Visible</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for review in reviews %}
-                <tr style="color: var(--text-color);">
+                <tr>
                     <td>{{ review.user.username }}</td>
+                    <td><span class="rating-badge">{{ review.rating }}</span></td>
+                    <td style="max-width: 300px; word-wrap: break-word;">{{ review.comment }}</td>
+                    <td>{{ review.created_at|date:"M d, Y" }}</td>
                     <td>
-                        <span class="badge rounded-pill" style="background-color: var(--primary-color); color: var(--white); padding: 0.5rem 1rem;">
-                            {{ review.rating }}
+                        <span class="visibility-badge {% if review.is_visible %}visible-true{% else %}visible-false{% endif %}">
+                            {% if review.is_visible %}Yes{% else %}No{% endif %}
                         </span>
-                    </td>
-                    <td style="max-width: 300px; word-wrap: break-word;">
-                        {{ review.comment }}
-                    </td>
-                    <td>
-                        {% if review.visible %}
-                            <span class="badge rounded-pill" style="background-color: var(--primary-dark); color: var(--white); padding: 0.5rem 1rem;">Yes</span>
-                        {% else %}
-                            <span class="badge rounded-pill" style="background-color: #ccc; color: #333; padding: 0.5rem 1rem;">No</span>
-                        {% endif %}
                     </td>
                     <td>
                         <form method="post" style="display:inline;">
                             {% csrf_token %}
                             <input type="hidden" name="review_id" value="{{ review.id }}">
-                            <button type="submit" class="btn btn-sm" style="border: 1px solid var(--primary-color); color: var(--primary-color); padding: 0.3rem 0.8rem; border-radius: 8px;">
-                                {% if review.visible %}Hide{% else %}Show{% endif %}
+                            <button type="submit" class="action-btn">
+                                {% if review.is_visible %}Hide{% else %}Show{% endif %}
                             </button>
                         </form>
                     </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="alert">No reviews found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    {% else %}
-    <div class="alert text-center" style="border: 1px solid var(--primary-color); color: var(--primary-color); border-radius: 12px; padding: 1rem;">
-        No reviews available.
-    </div>
-    {% endif %}
-
 </div>
 {% endblock %}

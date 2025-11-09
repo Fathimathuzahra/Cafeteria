@@ -10,7 +10,7 @@ from django.dispatch import receiver
 import uuid
 import logging
 
-
+from decimal import Decimal, ROUND_HALF_UP
 # -------------------
 # Token Status Enum
 # -------------------
@@ -50,7 +50,7 @@ class MealTokenCounter(models.Model):
 
 
 # -------------------
-# Menu Item
+# UPDATED: Menu Item 
 # -------------------
 class MenuItem(models.Model):
     CATEGORY_CHOICES = [
@@ -80,33 +80,65 @@ class MenuItem(models.Model):
 
     max_per_user_per_day = models.PositiveIntegerField(default=2)
     has_half = models.BooleanField(default=False)
-    half_price = models.DecimalField(
-        max_digits=8, decimal_places=2,
-        null=True, blank=True,
-        help_text="Price for half portion if allowed"
-    )
+    # half_price field removed - now in separate HalfPortion table
 
     def __str__(self):
         return f"{self.name} ({self.category})"
+
+    @property
+    def half_price(self):
+        """Calculate half price on demand - maintains backward compatibility"""
+        if not self.has_half:
+            return None
+        try:
+            return self.half_portion.price
+        except HalfPortion.DoesNotExist:
+            # Auto-create half portion if doesn't exist but has_half is True
+            if self.has_half:
+                return self.price / Decimal("2")
+            return None
+
+    def set_half_price(self, price):
+        """Set half price - creates or updates HalfPortion record"""
+        if not self.has_half:
+            raise ValueError("Cannot set half price when has_half is False")
+        
+        half_portion, created = HalfPortion.objects.get_or_create(
+            menu_item=self,
+            defaults={'price': price}
+        )
+        if not created:
+            half_portion.price = price
+            half_portion.save()
 
     def is_available_now(self):
         return self.available
 
     def reset_daily_stock(self):
         self.available_quantity = Decimal(str(self.daily_quantity))
-        self.available = self.daily_quantity > 0  # Fixed: No float conversion needed
+        self.available = self.daily_quantity > 0
         self.date_available = timezone.localdate()
         super().save(update_fields=["available_quantity", "available", "date_available"])
 
-    def reduce_stock(self, qty=Decimal("1")):
-        qty = Decimal(qty)
-        if qty <= 0:
-            raise ValueError("Quantity must be positive.")
-        if qty > self.available_quantity:
-            raise ValueError(f"Not enough {self.name} left today.")
-        self.available_quantity -= qty
-        self.available = self.available_quantity > 0
-        super().save(update_fields=["available_quantity", "available"])
+
+
+    def reduce_stock(self, quantity):
+        quantity = Decimal(str(quantity)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
+        # Convert None to 0 just in case
+        available = Decimal(str(self.available_quantity or 0)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
+        if available < quantity:
+            raise ValueError(f"Sorry, only {available} {self.name} left today.")
+
+        # Safe subtraction
+        new_qty = (available - quantity).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+        if new_qty < 0:
+            new_qty = Decimal("0.0")
+
+        self.available_quantity = new_qty
+        self.save(update_fields=["available_quantity"])
+
 
     def increase_stock(self, qty=Decimal("1")):
         qty = Decimal(qty)
@@ -122,8 +154,30 @@ class MenuItem(models.Model):
             self.available_quantity = Decimal("0")
             self.available = False
             self.date_available = today
+        
+        # If has_half is turned off, delete the half portion record
+        if not self.has_half and hasattr(self, 'half_portion'):
+            self.half_portion.delete()
+            
         super().save(*args, **kwargs)
 
+# -------------------
+# NEW: HalfPortion Table (Fixes normalization)
+# -------------------
+class HalfPortion(models.Model):
+    menu_item = models.OneToOneField('MenuItem', on_delete=models.CASCADE, primary_key=True, related_name='half_portion')
+    price = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2,
+        help_text="Price for half portion"
+    )
+    
+    def __str__(self):
+        return f"Half portion of {self.menu_item.name} - ₹{self.price}"
+
+    class Meta:
+        verbose_name = "Half Portion"
+        verbose_name_plural = "Half Portions"
 
 # -------------------
 # Orders & Items
@@ -148,18 +202,16 @@ class Order(models.Model):
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     meal_type = models.CharField(max_length=20, choices=MEAL_TYPE_CHOICES, default="all")
     order_date = models.DateTimeField(auto_now_add=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # REMOVED: total_amount field - calculated on demand instead of stored
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
 
     def __str__(self):
         return f"Order {self.id} - {self.user.username} ({self.status})"
 
-    def calculate_total(self):
-        total = sum(item.subtotal() for item in self.items.all())
-        if self.total_amount != total:
-            Order.objects.filter(pk=self.pk).update(total_amount=total)
-            self.total_amount = total
-        return total
+    @property
+    def total_amount(self):
+        """Calculate total on demand - fixes normalization violation"""
+        return sum(item.subtotal() for item in self.items.all())
 
     def detect_meal_type_from_items(self):
         if not self.pk:
@@ -175,35 +227,30 @@ class Order(models.Model):
         return "all"
 
     def save(self, *args, **kwargs):
-            creating = self._state.adding  # Check if this is a new order
+        creating = self._state.adding
             
-            # Your existing save logic
-            if self.pk and (self.meal_type == "all" or not self.meal_type):
-                detected_type = self.detect_meal_type_from_items()
-                if detected_type != "all":
-                    self.meal_type = detected_type
-            
-            if self.pk:
-                self.calculate_total()
-            
-            super().save(*args, **kwargs)
-            
-            # AUTO-CREATE TOKEN WHEN ORDER IS CREATED AND HAS ITEMS
-            # This is a backup to the signals
-            if creating and self.items.exists():
-                try:
-                    # Use get_or_create to avoid duplicates
-                    MealToken.objects.get_or_create(order=self)
-                    print(f"Token automatically created for order #{self.id}")
-                except Exception as e:
-                    print(f"Error creating token for order #{self.id}: {e}")
+        if self.pk and (self.meal_type == "all" or not self.meal_type):
+            detected_type = self.detect_meal_type_from_items()
+            if detected_type != "all":
+                self.meal_type = detected_type
+        
+        # REMOVED: calculate_total() call - no longer needed
+        
+        super().save(*args, **kwargs)
+        
+        # AUTO-CREATE TOKEN WHEN ORDER IS CREATED AND HAS ITEMS
+        if creating and self.items.exists():
+            try:
+                MealToken.objects.get_or_create(order=self)
+                print(f"Token automatically created for order #{self.id}")
+            except Exception as e:
+                print(f"Error creating token for order #{self.id}: {e}")
 
     @property
     def display_meal_type(self):
         if self.meal_type != "all":
             return self.meal_type
         return self.detect_meal_type_from_items()
-
 
 # -------------------
 # Order Item
@@ -217,46 +264,63 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
     menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     portion = models.CharField(max_length=4, choices=PORTION_CHOICES, default="FULL")
+    preferred_datetime = models.DateTimeField(null=True, blank=True, help_text="When the user wants this item served (optional, use for drinks)")
 
     def __str__(self):
         return f"{self.quantity} × {self.menu_item.name} (Order {self.order.id})"
 
+    # REMOVED: _calculated_price and price setter - not needed anymore
+
+    @property
+    def price(self):
+        """Calculate price on demand - fixes normalization violation"""
+        if self.portion == "FULL" or not self.menu_item.has_half:
+            return self.menu_item.price
+        else:
+            return (
+                self.menu_item.half_price
+                if self.menu_item.half_price is not None
+                else self.menu_item.price / Decimal("2")
+            )
+
     def subtotal(self):
-        return (self.price or Decimal("0")) * Decimal(self.quantity)
+        """Calculate subtotal using the dynamic price property"""
+        return self.price * Decimal(self.quantity)
 
     def save(self, *args, **kwargs):
         creating = self._state.adding
-        if not self.price:
-            if self.portion == "FULL" or not self.menu_item.has_half:
-                self.price = self.menu_item.price
-            else:
-                self.price = (
-                    self.menu_item.half_price
-                    if self.menu_item.half_price is not None
-                    else self.menu_item.price / Decimal("2")
-                )
+        
+        # Validate preferred_datetime (if provided) — cannot be in the past
+        if self.preferred_datetime:
+            now = timezone.now()
+            if self.preferred_datetime < now - timedelta(seconds=30):
+                raise ValueError("Preferred date/time cannot be in the past.")
 
-        if creating:
-            unit_qty = Decimal(self.quantity)
-            if self.portion == "HALF":
-                unit_qty *= Decimal("0.5")
-
-            today = timezone.localdate()
-            if self.menu_item.date_available != today:
-                self.menu_item.reset_daily_stock()
-
-            if self.menu_item.available_quantity < unit_qty:
-                raise ValueError(f"Sorry, only {self.menu_item.available_quantity} {self.menu_item.name} left today.")
-
-            self.menu_item.reduce_stock(unit_qty)
-
+        # REMOVED ALL STOCK CHECKING LOGIC - now handled in the view
+        
         super().save(*args, **kwargs)
         
         if self.order:
             self.order.save()
 
+# -------------------
+# NEW: TokenStatusHistory Table (Fixes MealToken normalization)
+# -------------------
+class TokenStatusHistory(models.Model):
+    token = models.ForeignKey('MealToken', on_delete=models.CASCADE, related_name='status_history')
+    status = models.CharField(max_length=20, choices=TokenStatus.choices)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    served_by = models.ForeignKey("User", null=True, blank=True, on_delete=models.SET_NULL)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = "Token Status History"
+        verbose_name_plural = "Token Status Histories"
+    
+    def __str__(self):
+        return f"{self.token.code} - {self.status} at {self.timestamp}"
 
 # -------------------
 # Token Settings Model
@@ -281,9 +345,14 @@ class TokenSettings(models.Model):
     def __str__(self):
         return "Token Settings"
 
+    # convenience
+    @property
+    def drinks_expiry_minutes(self):
+        """Hard-coded drinks expiry time. Change here if needed."""
+        return 20
 
 # -------------------
-# Meal Tokens
+# UPDATED: Meal Tokens (Fixed property conflicts)
 # -------------------
 class MealToken(models.Model):
     logger = logging.getLogger(__name__)
@@ -292,18 +361,15 @@ class MealToken(models.Model):
     code = models.CharField(max_length=50, unique=True, editable=False)
     token_number = models.PositiveIntegerField(editable=False)
     generated_at = models.DateTimeField(auto_now_add=True)
+    start_time = models.DateTimeField(null=True, blank=True, help_text="When this token becomes valid (for scheduled drinks)")
     status = models.CharField(max_length=20, choices=TokenStatus.choices, default=TokenStatus.PENDING)
-    served_at = models.DateTimeField(null=True, blank=True)
-    served_by = models.ForeignKey(
-        "User", null=True, blank=True,
-        on_delete=models.SET_NULL, related_name="served_tokens"
-    )
     validity_minutes = models.PositiveIntegerField(default=90)
-
-    payment_time = models.DateTimeField(null=True, blank=True)
     upi_transaction_id = models.CharField(max_length=100, blank=True, null=True)
     payment_verified = models.BooleanField(default=False)
-
+    payment_time = models.DateTimeField(null=True, blank=True)  # Use payment_time consistently
+    served_at = models.DateTimeField(null=True, blank=True)  # Keep as database field
+    served_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="served_tokens")  # Add this field
+    
     class Meta:
         ordering = ['-generated_at']
 
@@ -311,6 +377,7 @@ class MealToken(models.Model):
         return f"Token {self.token_number} ({self.code}) - Order {self.order.id} [{self.status}]"
 
     def save(self, *args, **kwargs):
+        # On creation, assign token number/code and compute start_time/validity
         if self._state.adding:
             today = timezone.localdate()
             if not self.order.items.exists():
@@ -336,11 +403,89 @@ class MealToken(models.Model):
                     counter_obj.counter = self.token_number
                     counter_obj.save()
 
+            # Determine validity and optional start_time based on order items
+            try:
+                detected_type = self.order.detect_meal_type_from_items()
+            except Exception:
+                detected_type = "all"
+
+            settings_obj = TokenSettings.load()
+
+            # If the order is primarily drinks, set drinks expiry (20 minutes)
+            if detected_type == 'drinks':
+                self.validity_minutes = settings_obj.drinks_expiry_minutes
+            else:
+                # default token expiry from settings
+                self.validity_minutes = settings_obj.token_expiry_minutes
+
+            # If any order item (drinks) has preferred_datetime, set token.start_time to the earliest such datetime
+            scheduled_qs = self.order.items.filter(
+                menu_item__category='drinks',
+                preferred_datetime__isnull=False
+            ).order_by('preferred_datetime')
+
+            if scheduled_qs.exists():
+                earliest = scheduled_qs.first().preferred_datetime
+                # If earliest is in the past, keep start_time as now
+                if earliest and earliest > timezone.now():
+                    self.start_time = earliest
+                else:
+                    # If user scheduled for now or passed slightly, activate immediately
+                    self.start_time = timezone.now()
+
         super().save(*args, **kwargs)
+
+        # Create initial status history entry
+        if self._state.adding:
+            TokenStatusHistory.objects.create(
+                token=self,
+                status=self.status,
+                timestamp=self.generated_at
+            )
+
+    def update_status(self, new_status, served_by_user=None, notes=None):
+        """Update status and create a history entry"""
+        old_status = self.status
+        self.status = new_status
+        
+        # Set served_at and served_by when marking as USED
+        if new_status == TokenStatus.USED:
+            self.served_at = timezone.now()
+            if served_by_user:
+                self.served_by = served_by_user
+        
+        self.save(update_fields=['status', 'served_at', 'served_by'])
+        
+        TokenStatusHistory.objects.create(
+            token=self,
+            status=new_status,
+            served_by=served_by_user,
+            notes=notes or f"Status changed from {old_status} to {new_status}"
+        )
+
+    # REMOVE THESE PROPERTIES - they conflict with database fields
+    # @property
+    # def served_at(self):
+    #     served_entry = self.status_history.filter(status=TokenStatus.USED).first()
+    #     return served_entry.timestamp if served_entry else None
+
+    # @property
+    # def served_by(self):
+    #     """Get served by from status history"""
+    #     served_entry = self.status_history.filter(status=TokenStatus.USED).first()
+    #     return served_entry.served_by if served_entry else None
+
+    # @property
+    # def payment_time(self):
+    #     """Get the timestamp when token was paid"""
+    #     paid_entry = self.status_history.filter(status=TokenStatus.PAID).first()
+    #     return paid_entry.timestamp if paid_entry else None
 
     @property
     def expires_at(self):
-        return self.generated_at + timedelta(minutes=self.validity_minutes)
+        # Use start_time if set (scheduled activation), else generated_at
+        base = self.start_time if self.start_time else self.generated_at
+        return base + timedelta(minutes=self.validity_minutes)
 
     @property
     def is_expired(self):
@@ -355,6 +500,9 @@ class MealToken(models.Model):
 
     @property
     def can_pay(self):
+        # Can't pay before start_time (for scheduled tokens)
+        if self.start_time and timezone.now() < self.start_time:
+            return False
         return self.status == TokenStatus.PENDING and not self.is_expired
 
     @property
@@ -368,50 +516,146 @@ class MealToken(models.Model):
         }
         return f"{status_icons.get(self.status, '')} {self.status}"
 
+    # ==================== TOKEN EXPIRY NOTIFICATION METHODS ====================
+    
+    def get_time_until_expiry(self):
+        """Returns time left until expiry in minutes"""
+        now = timezone.now()
+        expiry_time = self.expires_at
+        time_left = expiry_time - now
+        return max(0, int(time_left.total_seconds() / 60))
+    
+    def should_send_expiry_notification(self):
+        """
+        Check if we should send an expiry notification
+        - Send every 30 minutes when token is expiring
+        - Don't send if token is already used/expired/cancelled
+        """
+        from django.utils import timezone
+        
+        if self.status.upper() not in ['PENDING', 'PAID']:
+            return False
+            
+        time_left_minutes = self.get_time_until_expiry()
+        
+        # Only send notifications when token has less than 2 hours left
+        if time_left_minutes > 120:
+            return False
+            
+        # Don't send if token expires in less than 5 minutes (too late)
+        if time_left_minutes < 5:
+            return False
+            
+        # Check last notification sent for this token
+        last_notification = Notification.objects.filter(
+            related_token=self,
+            type='token_expiring'
+        ).order_by('-created_at').first()
+        
+        if last_notification:
+            time_since_last = timezone.now() - last_notification.created_at
+            # Send every 30 minutes (1800 seconds)
+            if time_since_last.total_seconds() < 1800:
+                return False
+        
+        return True
+    
+    def create_expiry_notification(self):
+        """Create an expiry notification for this token"""
+        if not self.should_send_expiry_notification():
+            return None
+            
+        time_left_minutes = self.get_time_until_expiry()
+        
+        # Format time string
+        hours = time_left_minutes // 60
+        minutes = time_left_minutes % 60
+        
+        if hours > 0:
+            time_str = f"{hours}h {minutes}m"
+        else:
+            time_str = f"{minutes}m"
+            
+        message = f"⏰ Token {self.code} expires in {time_str}. Complete your payment soon!"
+        
+        notification = Notification.objects.create(
+            user=self.order.user,
+            message=message,
+            type='token_expiring',
+            related_token=self,
+            is_read=False
+        )
+        
+        return notification
+    
+    def create_expired_notification(self):
+        """Create notification when token expires"""
+        notification = Notification.objects.create(
+            user=self.order.user,
+            message=f"⚠️ Token {self.code} has EXPIRED! Please place a new order.",
+            type='token_expired',
+            related_token=self,
+            is_read=False
+        )
+        return notification
+
+    # ==================== END OF TOKEN EXPIRY NOTIFICATION METHODS ====================
+
     def mark_used_auto(self):
         if self.status in [TokenStatus.PENDING, TokenStatus.PAID] and not self.is_expired:
-            self.status = TokenStatus.USED
-            self.served_at = timezone.now()
-            self.save(update_fields=["status", "served_at"])
-            
+            self.update_status(TokenStatus.USED, notes="Automatically marked as used")
             self._update_daily_report_on_use()
             return True
         return False
 
     def mark_expired_auto(self):
         if self.status in [TokenStatus.PENDING, TokenStatus.PAID] and self.is_expired:
-            self.status = TokenStatus.EXPIRED
-            self.save(update_fields=["status"])
-            
+            self.update_status(TokenStatus.EXPIRED, notes="Automatically expired")
             self._update_daily_report_on_expiry()
             self._restore_stock_on_expiry()
             return True
         return False
 
     def process_upi_payment(self, transaction_id, verified=False):
+        """
+        Marks the token as PAID via UPI.
+        Automatically updates payment_verified and creates notifications.
+        """
         with transaction.atomic():
             if self.status != TokenStatus.PENDING:
                 return False, "Token already processed."
-
             if self.is_expired:
-                self.status = TokenStatus.EXPIRED
-                self.save(update_fields=["status"])
+                self.update_status(TokenStatus.EXPIRED, notes="Expired before payment")
                 return False, "Token expired."
-
+            if self.start_time and timezone.now() < self.start_time:
+                return False, "Token is scheduled for future and cannot be paid yet."
             if not verified:
                 return False, "Payment not verified by gateway."
 
-            self.status = TokenStatus.USED
-            self.payment_time = timezone.now()
+            # Mark token as PAID
+            self.update_status(
+                TokenStatus.PAID,
+                notes=f"UPI payment completed - Transaction ID: {transaction_id}"
+            )
             self.upi_transaction_id = transaction_id
             self.payment_verified = True
-            self.served_at = timezone.now()
-            self.save(update_fields=["status", "payment_time", "upi_transaction_id", "payment_verified", "served_at"])
+            self.payment_time = timezone.now()  # Set payment time
+            self.save(update_fields=["upi_transaction_id", "payment_verified", "payment_time"])
 
-            self._update_daily_report_on_use()
-            self._create_payment_success_notification()
+            # Optionally mark as USED automatically if QR auto-use is enabled
+            settings_obj = TokenSettings.load()
+            if settings_obj.qr_payment_auto_use:
+                self.update_status(TokenStatus.USED, notes="Automatically marked used after UPI payment")
 
-            return True, "Payment successful and token marked as used."
+            # Create payment success notification
+            Notification.objects.get_or_create(
+                user=self.order.user,
+                type="payment_success",
+                message=f"✅ Payment confirmed! Token {self.code} served. Transaction ID: {self.upi_transaction_id}",
+                related_token=self
+            )
+
+            return True, "Payment successful and token updated."
 
     def _update_daily_report_on_use(self):
         for order_item in self.order.items.all():
@@ -524,9 +768,9 @@ class MealToken(models.Model):
         return self.mark_expired_auto()
 
     def mark_paid(self):
+        """Manually mark token as paid"""
         if self.status == TokenStatus.PENDING:
-            self.status = TokenStatus.PAID
-            self.save(update_fields=["status"])
+            self.update_status(TokenStatus.PAID, notes="Manually marked as paid")
             return True
         return False
 
@@ -535,8 +779,7 @@ class MealToken(models.Model):
             return False
         
         with transaction.atomic():
-            self.status = TokenStatus.CANCELLED
-            self.save(update_fields=["status"])
+            self.update_status(TokenStatus.CANCELLED, notes="Order cancelled")
             
             for oi in self.order.items.all():
                 qty = Decimal(oi.quantity) * (Decimal("0.5") if oi.portion == "HALF" else Decimal("1.0"))
@@ -585,9 +828,9 @@ class MealToken(models.Model):
             'upi_transaction_id': self.upi_transaction_id,
             'payment_time': self.payment_time.isoformat() if self.payment_time else None,
             'served_at': self.served_at.isoformat() if self.served_at else None,
+            'served_by': self.served_by.username if self.served_by else None,
         }
-
-
+    
 # -------------------
 # Daily Report
 # -------------------
@@ -630,74 +873,17 @@ class DailyReport(models.Model):
                     daily_report.total_tokens += 1
                     daily_report.sold_count += order_item.quantity
                     daily_report.save()
-                    
-    # @receiver(post_save, sender=MealToken)
-    # def update_reports_on_token(sender, instance, created, **kwargs):
-    #     date = instance.generated_at.date()
-    #     for oi in instance.order.items.all():
-    #         report, _ = DailyReport.objects.get_or_create(
-    #             date=date,
-    #             menu_item=oi.menu_item,
-    #             defaults={
-    #                 'total_tokens': 0,
-    #                 'sold_count': 0,
-    #                 'used_tokens_count': 0,
-    #                 'cancelled_tokens_count': 0,
-    #                 'expired_tokens_count': 0,
-    #             }
-    #         )
-    #         if created:
-    #             report.total_tokens += 1
-    #             report.sold_count += oi.quantity
-
-    #         report.used_tokens_count = DailyReport.objects.filter(
-    #             date=date,
-    #             menu_item=oi.menu_item,
-    #             total_tokens__gte=1
-    #         ).aggregate(total=models.Sum(
-    #             models.Case(
-    #                 models.When(order__meal_token__status=TokenStatus.USED, then=1),
-    #                 default=0,
-    #                 output_field=models.IntegerField()
-    #             )
-    #         ))['total'] or report.used_tokens_count
-
-    #         report.cancelled_tokens_count = DailyReport.objects.filter(
-    #             date=date,
-    #             menu_item=oi.menu_item,
-    #             total_tokens__gte=1
-    #         ).aggregate(total=models.Sum(
-    #             models.Case(
-    #                 models.When(order__meal_token__status=TokenStatus.CANCELLED, then=1),
-    #                 default=0,
-    #                 output_field=models.IntegerField()
-    #             )
-    #         ))['total'] or report.cancelled_tokens_count
-
-    #         report.expired_tokens_count = DailyReport.objects.filter(
-    #             date=date,
-    #             menu_item=oi.menu_item,
-    #             total_tokens__gte=1
-    #         ).aggregate(total=models.Sum(
-    #             models.Case(
-    #                 models.When(order__meal_token__status=TokenStatus.EXPIRED, then=1),
-    #                 default=0,
-    #                 output_field=models.IntegerField()
-    #             )
-    #         ))['total'] or report.expired_tokens_count
-
-    #         report.save()
 
 
-# -------------------
-# Notifications
-# -------------------
+# Update your Notification model in models.py
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
         ("payment_success", "Payment Success"),
         ("payment_failure", "Payment Failure"),
         ("system", "System"),
         ("info", "Info"),
+        ("token_expiring", "Token Expiring Soon"),  # ADD THIS
+        ("token_expired", "Token Expired"),         # ADD THIS
     ]
 
     user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="notifications")
@@ -705,10 +891,14 @@ class Notification(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
     type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default="info")
+    # ADD THIS FIELD to track which token the notification is about
+    related_token = models.ForeignKey('MealToken', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message}"
 
+    class Meta:
+        ordering = ['-created_at']
 
 # -------------------
 # Feedback
@@ -747,15 +937,20 @@ class Review(models.Model):
 # Serving
 # -------------------
 class Serving(models.Model):
-    item_name = models.CharField(max_length=100, default='Default Item')
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE, help_text="Menu item being served")
     current_number = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name = "Serving Counter"
+        verbose_name_plural = "Serving Counters"
+        unique_together = ['menu_item']
+
     @staticmethod
-    def next_number():
-        serving, _ = Serving.objects.get_or_create(id=1)
+    def next_number(menu_item):
+        serving, _ = Serving.objects.get_or_create(menu_item=menu_item)
         serving.current_number += 1
-        serving.save(update_fields=["current_number"])
+        serving.save(update_fields=["current_number", "updated_at"])
         return serving.current_number
 
     @staticmethod
@@ -763,7 +958,7 @@ class Serving(models.Model):
         Serving.objects.update(current_number=0)
 
     def __str__(self):
-        return self.item_name
+        return f"Serving {self.menu_item.name} - Current: {self.current_number}"
 
 
 # -------------------

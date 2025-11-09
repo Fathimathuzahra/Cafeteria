@@ -1,7 +1,7 @@
 {% extends "customer/user_base.html" %}
 {% load custom_filters %}
-
 {% load cart_extras %}
+
 {% block content %}
 
 <div class="container" style="max-width:1100px; margin:50px auto; padding:30px; background:#FFF8F0; border-radius:18px; box-shadow:0 8px 25px rgba(0,0,0,0.12); color:#3E2C1C;">
@@ -24,7 +24,6 @@
     </h2>
 
     {% if cart_items %}
-        <!-- Cart Update Form -->
         <form method="post" action="{% url 'cart_update' %}">
             {% csrf_token %}
             <div style="overflow-x:auto; border-radius:12px;">
@@ -34,6 +33,7 @@
                             <th>Item</th>
                             <th>Portion</th>
                             <th>Quantity</th>
+                            <th>Preferred Time</th>
                             <th>Price (₹)</th>
                             <th>Subtotal (₹)</th>
                             <th>Action</th>
@@ -49,6 +49,16 @@
                                            value="{{ entry.quantity }}" min="1" 
                                            style="width: 60px; padding: 5px; text-align: center; background: #FFF3E0; color: #3E2C1C; border: 1px solid #8B4513; border-radius:6px;">
                                 </td>
+                                <td>
+                                    {% if entry.menu_item.category|lower == "drinks" %}
+                                    <input type="time" name="preferred_time_{{ entry.key }}"
+                                           value="{{ entry.preferred_time|default:'' }}"
+                                           style="width: 110px; padding:4px; border-radius:6px; border:1px solid #8B4513; background:#FFF3E0; color:#3E2C1C;">
+                                    <small style="display:block; color:#3E2C1C;">Drinks expire 20 min after this time</small>
+                                    {% else %}
+                                    N/A
+                                    {% endif %}
+                                </td>
                                 <td>₹{{ entry.price|floatformat:2 }}</td>
                                 <td>₹{{ entry.subtotal|floatformat:2 }}</td>
                                 <td>
@@ -63,7 +73,7 @@
                     </tbody>
                     <tfoot>
                         <tr style="background: #8B4513; color:#fff; font-weight:bold;">
-                            <td colspan="4" style="text-align:right; padding:15px;">Total:</td>
+                            <td colspan="5" style="text-align:right; padding:15px;">Total:</td>
                             <td>₹{{ total|floatformat:2 }}</td>
                             <td></td>
                         </tr>
@@ -72,9 +82,10 @@
             </div>
 
             <div style="margin-top:25px;">
-                <button type="submit" class="btn" style="padding:12px 25px; border-radius:12px; background:#8B4513; color:#fff; font-weight:600; transition:0.3s;">
+                <button type="submit" class="btn" style="padding:12px 25px; border-radius:12px; background:#D2691E; color:#fff; font-weight:600; transition:0.3s; margin-left:10px;">
                     🔄 Update Cart
                 </button>
+
                 <a href="{% url 'cart_clear' %}" class="btn" style="padding:12px 25px; border-radius:12px; background:#D2691E; color:#fff; font-weight:600; transition:0.3s; margin-left:10px;">
                     🗑 Clear Cart
                 </a>

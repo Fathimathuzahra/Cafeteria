@@ -9,7 +9,7 @@
         <h2 class="text-center mb-4 text-danger">🗑️ Delete Menu Item</h2>
         <p class="text-center fs-5">Are you sure you want to delete <strong>{{ item.name }}</strong>?</p>
 
-        <form action="{% url 'main_menu_delete' item.id %}" method="post" class="text-center mt-3">
+        <form action="{% url 'delete_main_menu_item' item.id %}" method="post" class="text-center mt-3">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger btn-lg w-100 mb-2">
                 Delete

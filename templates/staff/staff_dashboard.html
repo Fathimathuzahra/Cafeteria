@@ -28,7 +28,7 @@
     background: var(--primary-accent);
     color: #fff;
     border-radius: 0 20px 20px 0;
-    padding-top: 2rem;
+    padding-top: 1rem;
     flex-shrink: 0;
 }
 .sidebar img {
@@ -166,8 +166,8 @@
     <!-- ====== SIDEBAR ====== -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <img src="{% static 'images/logo.png' %}" alt="College Logo">
-            <span>☕ Staff Panel</span>
+            <img src="{% static 'images/1.png' %}" alt="College Logo">
+            <span></span>
         </div>
         <a href="{% url 'staff_dashboard' %}" class="{% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
             <i class="fas fa-tachometer-alt"></i> Dashboard
@@ -178,6 +178,8 @@
         <a href="{% url 'menu_list' %}" class="{% if request.resolver_match.url_name == 'menu_list' %}active{% endif %}">
             <i class="fas fa-utensils"></i> Today's Menu
         </a>
+        
+      <a href="{% url 'user_reviews' %}" class="btn btn-custom"><i class="fas fa-comments"></i> Reviews</a>
         <a href="{% url 'tokens_today' %}" class="{% if request.resolver_match.url_name == 'tokens_today' %}active{% endif %}">
             <i class="fas fa-ticket-alt"></i> Tokens
         </a>

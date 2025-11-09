@@ -2,163 +2,184 @@
 {% block title %}Manage Users | College Canteen{% endblock %}
 
 {% block content %}
-<div class="content-header">
-    <h2>Manage Users</h2>
-    <a href="{% url 'admin_add_user' %}" class="btn btn-warning-custom">
-        <i class="fas fa-user-plus"></i> Add New User
-    </a>
-</div>
+<div class="content-wrapper">
+    <div class="content-header">
+        <h2><i class="fas fa-users"></i> Manage Users</h2>
+        <a href="{% url 'admin_add_user' %}" class="btn btn-add-user">
+            <i class="fas fa-user-plus"></i> Add New User
+        </a>
+    </div>
 
-<div class="table-container">
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.role }}</td>
-                    <td>
-                        {% if user.username != request.user.username %}
-                        <a href="{% url 'admin_delete_user' user.id %}" class="btn btn-danger btn-sm" aria-label="Delete user {{ user.username }}">
-                            <i class="fas fa-trash-alt"></i> Delete
-                        </a>
-                        {% else %}
-                        <span class="text-muted">Cannot delete self</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="text-center">No users found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.role|title }}</td>
+                        <td>
+                            {% if user.username != request.user.username %}
+                            <a href="{% url 'admin_delete_user' user.id %}" class="btn btn-delete" aria-label="Delete user {{ user.username }}">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Cannot delete self</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <style>
 :root {
-    --primary-color: #A0522D;   /* warm brown */
-    --primary-dark: #7A3E1F;    /* darker brown */
-    --accent-color: #D2B48C;    /* tan / beige */
-    --text-color: #5C3A21;      /* dark brown text */
-    --light-bg: #FFF8F0;        /* cream background */
-    --white: #ffffff;
-    --border-color: #E0D6C3;    /* soft brownish border */
-    --hover-bg: #FBEEDD;        /* light beige hover */
+    --primary-color: #8B4513;     /* Saddle brown */
+    --primary-dark: #6B3410;
+    --accent-color: #D2B48C;      /* Tan */
+    --bg-light: #FFF8F0;          /* Cream background */
+    --text-dark: #3E2723;         /* Deep brown */
+    --white: #fff;
+    --border-soft: #E7DCC7;
+    --hover-bg: #FBF2E6;
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-/* Header */
+/* ====== Page Layout ====== */
+.content-wrapper {
+    background: var(--bg-light);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-soft);
+    margin: 25px auto;
+    max-width: 1200px;
+}
+
+/* ====== Header ====== */
 .content-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
     flex-wrap: wrap;
-    padding-bottom: 5px;
     border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 .content-header h2 {
-    margin: 0;
     color: var(--primary-color);
-    font-size: 1.8rem;
     font-weight: 700;
+    font-size: 1.7rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-/* Table container */
+/* ====== Table ====== */
 .table-container {
-    background-color: var(--light-bg);
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 6px 25px rgba(0,0,0,0.08);
+    overflow-x: auto;
 }
 
-/* Table styles */
-.table {
+.user-table {
     width: 100%;
     border-collapse: collapse;
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.table th, .table td {
-    padding: 12px 15px;
-    border: 1px solid var(--border-color);
-}
-
-.table th {
-    background-color: var(--primary-color);
-    color: var(--white);
+.user-table th, .user-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-soft);
     text-align: left;
+}
+
+.user-table th {
+    background: var(--primary-color);
+    color: var(--white);
     font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
-.table td {
-    background-color: var(--light-bg);
-    color: var(--text-color);
+.user-table tr:nth-child(even) td {
+    background: #FFF4E8;
 }
 
-.table tr:nth-child(even) td {
-    background-color: #FFF3E6; /* subtle alternating row color */
-}
-
-.table tr:hover td {
-    background-color: var(--hover-bg);
+.user-table tr:hover td {
+    background: var(--hover-bg);
     transition: 0.3s ease;
 }
 
-/* Buttons */
-.btn-warning-custom {
-    background: linear-gradient(135deg, #D2B48C, var(--primary-color));
-    color: var(--white);
+/* ====== Buttons ====== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     border: none;
     border-radius: 50px;
-    padding: 10px 22px;
+    padding: 10px 20px;
     font-weight: 600;
-    transition: background 0.3s ease, transform 0.3s ease;
+    font-size: 0.95rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.btn-warning-custom:hover {
-    background: var(--primary-dark);
-    transform: scale(1.05);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #D96B5C, #A0522D); /* brownish-red gradient */
+.btn-add-user {
+    background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
     color: var(--white);
-    border: none;
-    border-radius: 50px;
-    padding: 8px 18px;
-    transition: background 0.3s ease, transform 0.3s ease;
 }
 
-.btn-danger:hover {
+.btn-add-user:hover {
     background: var(--primary-dark);
     transform: scale(1.05);
 }
 
-/* Text alignment */
+.btn-delete {
+    background: linear-gradient(135deg, #D96B5C, var(--primary-color));
+    color: var(--white);
+    padding: 8px 16px;
+}
+
+.btn-delete:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+/* ====== Text ====== */
 .text-center {
     text-align: center;
-    color: #7A5A40;
+    color: var(--text-dark);
 }
 
-/* Responsive */
+.text-muted {
+    color: #a08b75;
+}
+
+/* ====== Responsive ====== */
 @media (max-width: 768px) {
     .content-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 12px;
     }
-    .table th, .table td {
+    .user-table th, .user-table td {
         font-size: 0.9rem;
+        padding: 10px;
     }
 }
 </style>

@@ -1,12 +1,246 @@
-{% extends 'customer/user_base.html' %}
 {% load static %}
 
 {% block content %}
 <style>
+/* ====== CSS VARIABLES ====== */
+:root {
+    --primary-accent: #8B4513;
+    --secondary-accent: #D2691E;
+    --text-white: #FFFFFF;
+    --text-medium: #5D4735;
+    --border-light: rgba(139,69,19,0.15);
+    --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --gradient-accent: linear-gradient(135deg, #D2691E, #A0522D);
+}
+
+/* =========================
+Header & Navigation Styles
+=========================== */
+.header {
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-soft);
+    position: fixed;
+    top: 0; 
+    left: 0; 
+    right: 0;
+    z-index: 1000;
+    transition: all 0.4s ease;
+    border-bottom: 2px solid var(--border-light);
+    background: rgba(255, 248, 240, 0.95);
+}
+ 
+.header.scrolled {
+    background: rgba(255, 248, 240, 0.98);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+ 
+/* Logo Section */
+.logo-section {
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; 
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.logo-section:hover {
+    transform: translateY(-1px);
+}
+
+.logo {
+    width: 60px; 
+    height: 60px; 
+    border-radius: 12px; 
+    object-fit: cover;
+    border: 3px solid var(--primary-accent); 
+    box-shadow: var(--shadow-soft);
+    transition: all 0.4s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05) rotate(2deg);
+    box-shadow: 0 8px 25px rgba(139,69,19,0.2);
+}
+ 
+.brand-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; 
+    font-weight: 700; 
+    background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.5px;
+}
+ 
+/* Navigation Menu */
+.nav-menu {
+    display: flex; 
+    list-style: none; 
+    gap: 1.5rem; 
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-link {
+    color: var(--text-medium);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.75rem 1.2rem;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: var(--primary-accent);
+    background: rgba(139,69,19,0.08);
+    transform: translateY(-1px);
+}
+
+.nav-link.active { 
+    color: var(--primary-accent); 
+    background: rgba(139,69,19,0.1);
+    box-shadow: 0 4px 12px rgba(139,69,19,0.15);
+}
+    
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 2px;
+    background: var(--gradient-accent);
+    border-radius: 2px;
+}
+
+/* CTA Button */
+.nav-cta {
+    background: var(--gradient-accent);
+    color: var(--text-white);
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(210,105,30,0.4);
+    position: relative;
+    overflow: hidden;
+}
+  
+.nav-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+  
+.nav-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(210,105,30,0.5);
+}
+  
+.nav-cta:hover::before {
+    left: 100%;
+}
+    
+/* Mobile Menu Button */
+.mobile-menu-btn { 
+    display: none; 
+    background: none; 
+    border: none; 
+    font-size: 1.6rem; 
+    color: var(--primary-accent); 
+    cursor: pointer; 
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-btn:hover {
+    background: rgba(139,69,19,0.1);
+    transform: scale(1.1);
+}
+
+/* =========================
+Responsive Design
+=========================== */
+@media (max-width: 768px) {
+    .nav-container { 
+        flex-direction: column; 
+        padding: 1rem;
+    }
+       
+    .mobile-menu-btn { 
+        display: block; 
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+    }
+        
+    .nav-menu { 
+        display: none; 
+        flex-direction: column; 
+        width: 100%; 
+        margin-top: 1rem; 
+        gap: 0.5rem;
+    }
+        
+    .nav-menu.active { 
+        display: flex; 
+    }
+      
+    .nav-link {
+        width: 100%;
+        text-align: center;
+        padding: 1rem;
+        border-radius: 12px;
+    }
+      
+    .brand-text {
+        font-size: 1.8rem;
+    }
+    
+    .logo {
+        width: 50px;
+        height: 50px;
+    }
+}
+	
+@media (max-width: 480px) {
+    .brand-text {
+        font-size: 1.6rem;
+    }
+    
+    .logo {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .nav-container {
+        padding: 0.8rem;
+    }
+}
+
 /* ====== PAGE CONTAINER ====== */
 .container { 
     max-width: 1100px; 
-    margin: 40px auto; 
+    margin: 100px auto 40px; /* Increased top margin for fixed header */
     padding: 25px; 
     background: #FFF8F0; /* primary cream background */
     border-radius: 18px; 
@@ -15,19 +249,23 @@
     font-family: 'Segoe UI', sans-serif; 
 }
 
-/* ====== HEADER ====== */
-header h1 { 
-    font-size: 2rem; 
+/* ====== PAGE HEADER ====== */
+.page-header { 
+    text-align: center; 
+    margin-bottom: 40px;
+    padding: 20px 0;
+}
+
+.page-title { 
+    font-size: 2.5rem; 
     font-weight: bold; 
     color: #8B4513; /* primary accent brown */ 
-    text-align: center; 
-    margin-bottom: 5px; 
+    margin-bottom: 10px; 
 }
-header p.description { 
-    text-align: center; 
+
+.page-description { 
     color: #3E2C1C; 
-    font-size: 1rem; 
-    margin-bottom: 30px; 
+    font-size: 1.1rem; 
 }
 
 /* ====== CATEGORY HEADER ====== */
@@ -52,22 +290,27 @@ table {
     background: #FFFFFF; 
     box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
 }
+
 thead { 
     background: #8B4513; 
 }
+
 thead th { 
     color: #FFF; 
     padding: 12px; 
     text-align: left; 
     font-size: 0.95rem; 
 }
+
 tbody tr { 
     background: #FFF3E0; 
     transition: 0.3s; 
 }
+
 tbody tr:hover { 
     background: #FFD8A6; /* cinnamon hover */ 
 }
+
 td { 
     padding: 12px; 
     border-bottom: 1px solid #FDE6C4; 
@@ -98,6 +341,7 @@ td {
     border: none; 
     cursor: pointer; 
 }
+
 .add-to-cart-btn:hover { 
     opacity: 0.9; 
     transform: scale(1.05); 
@@ -112,6 +356,7 @@ td {
     border-radius: 12px; 
     border-left: 5px solid #D2691E; 
 }
+
 .out-of-stock-section h3 { 
     color: #D2691E; 
     margin-bottom: 20px; 
@@ -126,6 +371,7 @@ td {
     font-weight: bold; 
     color: #FFF; 
 }
+
 .bg-success { background-color: #8B4513; }
 .bg-danger { background-color: #D2691E; }
 
@@ -144,11 +390,33 @@ td {
 .cart-form { display: inline-block; margin-bottom: 5px; }
 </style>
 
+<!-- Add Bootstrap Icons for mobile menu -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"/>
+
 <div class="container">
-    <header>
-        <h1>🍽 Today's Menu</h1>
-        <p class="description">Order your favorite meals easily</p>
+    <!-- HTML Structure -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="{% url 'index' %}" class="logo-section">
+                <img src="{% static 'images/logo.png' %}" alt="Campus Bites Logo" class="logo">
+                <span class="brand-text">Cafeteria</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <i class="bi bi-list"></i>
+            </button>
+            <ul class="nav-menu">
+                <a href="{% url 'user_dashboard' %}" class="nav-link">Home</a>
+                <a href="{% url 'user_menu_list' %}" class="nav-link">Today's Menu</a>
+                <a href="{% url 'cart_view' %}" class="nav-link">🛒 Cart</a>
+                <a href="{% url 'my_tokens' %}" class="nav-link">🎟 My Tokens</a>
+        </nav>
     </header>
+
+    <!-- Page Header with Today's Menu -->
+    <div class="page-header">
+        <h1 class="page-title">🍽️ Today's Menu</h1>
+        <p class="page-description">Order your favorite meals easily</p>
+    </div>
 
     <div class="main-content">
         {% if categorized_available %}
@@ -259,6 +527,24 @@ td {
 </div>
 
 <script>
+// Mobile menu functionality
+document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
+    document.querySelector('.nav-menu').classList.toggle('active');
+});
+
+// Close mobile menu when clicking on a link
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function() {
+        document.querySelector('.nav-menu').classList.remove('active');
+    });
+});
+
+// Header scroll effect
+window.addEventListener("scroll", function() {
+    const header = document.querySelector(".header");
+    header.classList.toggle("scrolled", window.scrollY > 50);
+});
+
 function updateQuantity(portion, itemId) {
     const quantityInput = document.getElementById('quantity_' + itemId);
     const hiddenInput = document.getElementById('hidden_quantity_' + (portion !== 'full' ? portion + '_' : '') + itemId);

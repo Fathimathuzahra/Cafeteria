@@ -118,7 +118,7 @@
 
 <div class="dashboard-container">
     <div class="dashboard-header">
-        <h1>👋 Welcome, {{ request.user.first_name|default:request.user.username }}</h1>
+        <h1>👋 Welcome, {{ request.user.username|upper }}</h1>
         <p>Your personalized canteen dashboard</p>
     </div>
 

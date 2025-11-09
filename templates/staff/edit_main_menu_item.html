@@ -2,128 +2,519 @@
 {% load static %}
 
 {% block content %}
-<!-- Loading Spinner -->
-<div id="loading-spinner" class="spinner-overlay d-none">
-    <div class="spinner-border text-success" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-</div>
-
 <style>
-/* Spinner Overlay */
+:root {
+    --cream-bg: #fffaf3;
+    --light-brown: #f7e7ce;
+    --brown: #8b4513;
+    --dark-brown: #5a3825;
+    --accent: #d2a679;
+    --hover-accent: #a0522d;
+    --text-dark: #3e2c1c;
+}
+
+/* Spinner Overlay - HIDDEN BY DEFAULT */
 .spinner-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255,255,255,0.7);
-    display: flex;
+    background: rgba(255, 250, 243, 0.9);
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 1050;
+    backdrop-filter: blur(5px);
 }
 
-/* Content Wrapper */
-.content-wrapper {
-    margin-top: 60px;
-    margin-bottom: 60px;
+.spinner-overlay.show {
+    display: flex;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.3em;
+}
+
+/* Main Container */
+.edit-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--cream-bg), var(--light-brown));
+    padding: 40px 20px;
 }
 
 /* Card Styling */
-.card {
-    background: #f0fdf4;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(67, 160, 71, 0.2);
-    transition: transform 0.3s ease;
-}
-.card:hover {
-    transform: translateY(-3px);
+.edit-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(139, 69, 19, 0.15);
+    border: none;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Heading */
-.card h2 {
-    color: #43a047;
+.edit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(139, 69, 19, 0.25);
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--accent), var(--hover-accent));
+    color: white;
+    padding: 30px;
+    text-align: center;
+    border-bottom: none;
+}
+
+.card-header h2 {
     font-weight: 700;
+    margin: 0;
+    font-size: 2.2rem;
 }
 
-/* Form Elements */
-form label {
+.card-header i {
+    margin-right: 12px;
+    font-size: 1.8rem;
+}
+
+.card-body {
+    padding: 40px;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
     font-weight: 600;
-    color: #43a047;
+    color: var(--dark-brown);
+    margin-bottom: 8px;
+    font-size: 1rem;
+    display: block;
 }
-form input, form select, form textarea {
-    background: #ffffff;
-    border: 1px solid #c8e6c9;
-    border-radius: 8px;
-    padding: 10px;
-    color: #333;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+.form-control, .form-select {
+    border: 2px solid var(--light-brown);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #fff;
+    width: 100%;
+    box-sizing: border-box;
 }
-form input:focus, form select:focus, form textarea:focus {
-    border-color: #43a047;
-    box-shadow: 0 0 5px rgba(67,160,71,0.3);
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(210, 166, 121, 0.25);
+    background: #fffaf0;
     outline: none;
 }
 
-/* Submit Button */
-.btn-warning {
-    background: linear-gradient(90deg, #43a047, #66bb6a);
-    border: none;
-    transition: background 0.3s ease, transform 0.2s ease;
-}
-.btn-warning:hover {
-    background: linear-gradient(90deg, #388e3c, #43a047);
-    transform: translateY(-2px);
+.form-text {
+    color: var(--text-dark);
+    opacity: 0.7;
+    font-size: 0.875rem;
+    margin-top: 5px;
+    display: block;
 }
 
-/* Responsive Adjustments */
+/* File Input Styling */
+.form-control-file {
+    padding: 10px;
+    border: 2px dashed var(--accent);
+    background: var(--cream-bg);
+    border-radius: 12px;
+}
+
+.form-control-file:focus {
+    border-style: solid;
+}
+
+/* Current Image Preview */
+.current-image {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background: var(--cream-bg);
+    border-radius: 12px;
+    border: 2px solid var(--light-brown);
+}
+
+.current-image img {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 10px;
+    border: 3px solid var(--accent);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.image-label {
+    display: block;
+    font-weight: 600;
+    color: var(--dark-brown);
+    margin-bottom: 10px;
+}
+
+/* Button Styling */
+.btn-submit {
+    background: linear-gradient(135deg, var(--accent), var(--hover-accent));
+    border: none;
+    color: white;
+    padding: 14px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
+    background: linear-gradient(135deg, var(--hover-accent), var(--dark-brown));
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+/* Alert Styling */
+.alert {
+    border-radius: 12px;
+    border: none;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+}
+
+.alert-error {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+}
+
+/* Form Row Layout */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Form Check Styling */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+}
+
+.form-check-input {
+    width: 50px;
+    height: 25px;
+    margin: 0;
+}
+
+.form-check-label {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+/* Error Styling */
+.errorlist {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 5px;
+    padding-left: 0;
+    list-style: none;
+}
+
+.errorlist li {
+    background: #f8d7da;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+/* Make sure form fields have proper styling */
+input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+}
+
 @media (max-width: 768px) {
-    .card {
-        padding: 20px;
+    .form-row {
+        grid-template-columns: 1fr;
     }
+    
+    .card-body {
+        padding: 25px;
+    }
+    
+    .card-header h2 {
+        font-size: 1.8rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.edit-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Textarea Styling */
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* Price Input Styling */
+.price-input {
+    position: relative;
+}
+
+.price-input::before {
+    content: "₹";
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dark-brown);
+    font-weight: 600;
+    z-index: 1;
+}
+
+.price-input .form-control {
+    padding-left: 35px;
+}
+
+/* Ensure all form elements are properly styled */
+input[type="text"],
+input[type="number"],
+input[type="file"],
+select,
+textarea {
+    border: 2px solid var(--light-brown);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    background: #fff;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="file"]:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(210, 166, 121, 0.25);
+    background: #fffaf0;
+    outline: none;
 }
 </style>
 
-<div class="container content-wrapper">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card p-4">
-                <h2 class="mb-4 text-center">Edit Main Menu Item</h2>
-                
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+<!-- Loading Spinner - HIDDEN BY DEFAULT -->
+<div id="loading-spinner" class="spinner-overlay">
+    <div class="spinner-border text-warning" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
 
-                <form method="post" enctype="multipart/form-data" id="edit-menu-form">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <div class="d-grid gap-2 mt-3">
-                        <button type="submit" class="btn btn-warning btn-lg">Save Changes</button>
+<div class="edit-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-6">
+                <div class="edit-card">
+                    <!-- Card Header -->
+                    <div class="card-header">
+                        <h2><i class="fas fa-edit"></i>Edit Menu Item</h2>
                     </div>
-                </form>
+
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="post" enctype="multipart/form-data" id="edit-menu-form">
+                            {% csrf_token %}
+                            
+                            <!-- Display form errors -->
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Please correct the errors below.
+                                </div>
+                            {% endif %}
+
+                            <!-- Current Image Preview -->
+                            {% if form.instance.image %}
+                            <div class="current-image">
+                                <span class="image-label">Current Image:</span>
+                                <img src="{{ form.instance.image.url }}" alt="{{ form.instance.name }}" class="img-fluid mt-2">
+                            </div>
+                            {% endif %}
+
+                            <!-- Name Field -->
+                            <div class="form-group">
+                                <label for="id_name" class="form-label">
+                                    <i class="fas fa-tag me-2"></i>Item Name
+                                </label>
+                                <input type="text" name="name" value="{{ form.name.value|default:'' }}" class="form-control" id="id_name" required>
+                                {% if form.name.errors %}
+                                    <div class="errorlist">{{ form.name.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Description Field -->
+                            <div class="form-group">
+                                <label for="id_description" class="form-label">
+                                    <i class="fas fa-align-left me-2"></i>Description
+                                </label>
+                                <textarea name="description" class="form-control" id="id_description" rows="3">{{ form.description.value|default:'' }}</textarea>
+                                {% if form.description.errors %}
+                                    <div class="errorlist">{{ form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-row">
+                                <!-- Price Field -->
+                                <div class="form-group price-input">
+                                    <label for="id_price" class="form-label">
+                                        <i class="fas fa-rupee-sign me-2"></i>Price
+                                    </label>
+                                    <input type="number" name="price" value="{{ form.price.value|default:'' }}" step="0.01" class="form-control" id="id_price" required>
+                                    {% if form.price.errors %}
+                                        <div class="errorlist">{{ form.price.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Category Field - DYNAMIC FROM VIEW_MENU -->
+                                <div class="form-group">
+                                    <label for="id_category" class="form-label">
+                                        <i class="fas fa-layer-group me-2"></i>Category
+                                    </label>
+                                   <select name="category" class="form-select" id="id_category" required>
+    <option value="">Select Category</option>
+    {% for category in categories %}
+        <option value="{{ category }}" 
+            {% if form.category.value == category %}selected{% endif %}>
+            {{ category|title }}
+        </option>
+    {% endfor %}
+</select>
+
+                                    {% if form.category.errors %}
+                                        <div class="errorlist">{{ form.category.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <!-- Is New Field -->
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-star me-2"></i>Mark as New Item
+                                    </label>
+                                    <div class="form-check">
+                                        <input type="checkbox" name="is_new" class="form-check-input" id="id_is_new" {% if form.is_new.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="id_is_new">
+                                            Show "New" badge
+                                        </label>
+                                    </div>
+                                    {% if form.is_new.errors %}
+                                        <div class="errorlist">{{ form.is_new.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Image Field -->
+                            <div class="form-group">
+                                <label for="id_image" class="form-label">
+                                    <i class="fas fa-image me-2"></i>Item Image
+                                </label>
+                                <input type="file" name="image" class="form-control-file" id="id_image" accept="image/*">
+                                {% if form.image.errors %}
+                                    <div class="errorlist">{{ form.image.errors }}</div>
+                                {% endif %}
+                                {% if form.instance.image %}
+                                    <div class="form-text">Currently: {{ form.instance.image.name }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-submit">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var spinner = document.getElementById("loading-spinner");
-        var form = document.getElementById("edit-menu-form");
+document.addEventListener("DOMContentLoaded", function() {
+    const spinner = document.getElementById("loading-spinner");
+    const form = document.getElementById("edit-menu-form");
 
-        form.addEventListener("submit", function() {
-            spinner.classList.remove("d-none");
-        });
+    // Hide spinner immediately when page loads
+    spinner.classList.remove('show');
 
-        window.addEventListener("load", function() {
-            spinner.classList.add("d-none");
-        });
+    // Add loading spinner on form submit
+    form.addEventListener("submit", function() {
+        spinner.classList.add("show");
     });
+
+    // File input change handler
+    const fileInput = document.getElementById('id_image');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'No file chosen';
+            // Update the help text or create one if it doesn't exist
+            let helpText = this.nextElementSibling;
+            while (helpText && !helpText.classList.contains('form-text')) {
+                helpText = helpText.nextElementSibling;
+            }
+            if (helpText) {
+                helpText.textContent = `Selected: ${fileName}`;
+            }
+        });
+    }
+
+    // Fallback: hide spinner after 5 seconds (in case something goes wrong)
+    setTimeout(function() {
+        spinner.classList.remove('show');
+    }, 5000);
+});
 </script>
 {% endblock %}

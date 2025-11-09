@@ -49,6 +49,15 @@ from .models import MealToken
 from .utils import generate_unique_meal_token_code
 # utils.py
 def create_meal_token(order):
-    code = generate_unique_meal_token_code()
-    token = MealToken.objects.create(order=order, code=code, status='pending')
-    return token
+    """
+    Create a meal token for an order, or return existing one if it already exists.
+    """
+    # Check if a meal token already exists for this order
+    try:
+        existing_token = MealToken.objects.get(order=order)
+        return existing_token  # Return existing token instead of creating new one
+    except MealToken.DoesNotExist:
+        # Only create new token if one doesn't exist
+        code = generate_unique_meal_token_code()
+        token = MealToken.objects.create(order=order, code=code, status='pending')
+        return token

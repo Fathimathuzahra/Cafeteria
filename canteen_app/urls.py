@@ -9,6 +9,7 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("menu/", views.view_menu, name="menu"),
+    path('reset-password/', views.reset_password, name='reset_password'),
     
     # Student / User URLs
     path("user/dashboard/", views.user_dashboard, name="user_dashboard"),
@@ -41,12 +42,14 @@ urlpatterns = [
     path("staff/view-menu/", views.staff_view_menu, name="staff_view_menu"),
     path("staff/menu/add/", views.add_menu_item, name="menu_create"),
     path("staff/menu/delete/<int:pk>/", views.delete_daily_menu_item, name="menu_delete"),  # Daily menu deletion
-    path("staff/menu/delete_main/<int:pk>/", views.delete_main_menu_item, name="main_menu_delete"),  # Main menu deletion
+    path("staff/menu/delete_main/<int:pk>/", views.delete_main_menu_item, name="delete_main_menu_item"),  # Main menu deletion
     path("staff/menu/<int:item_id>/update_quantity/", views.update_item_quantity, name="update_item_quantity"),
     path("staff/menu/reset_all_stock/", views.reset_all_stock, name="reset_all_stock"),
     path("staff/menu/edit/<int:pk>/", views.edit_daily_menu_item, name="menu_edit"),  # Daily menu
     path("staff/menu/edit-main/<int:pk>/", views.edit_main_menu_item, name="edit_main_menu_item"),  # Main menu
     path("staff/tokens/", views.tokens_today, name="tokens_today"),
+    
+    path("staff/reviews/", views.user_reviews, name="user_reviews"),
         # QR Code endpoints
     path('api/tokens/<str:token_code>/qr-data/', views.generate_qr_data, name='generate_qr_data'),
     path('token/<str:code>/process-payment/', views.process_upi_payment, name='process_upi_payment'),

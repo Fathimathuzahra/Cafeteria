@@ -5,9 +5,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <div class="card shadow-lg rounded-4 p-4" style="background-color: #ffffff; border: 1px solid #d4edda;">
-    
+<div class="d-flex justify-content-center align-items-center min-vh-100" style="background-color: #fffaf3;">
+  <div class="card shadow-lg rounded-4 p-5 form-card">
+
+    <!-- Header -->
     <div class="text-center mb-4">
       <div class="icon-circle mb-3">
         {% if mode %}
@@ -16,7 +17,7 @@
           <i class="fas fa-plus text-white"></i>
         {% endif %}
       </div>
-      <h2 class="fw-bold text-success">
+      <h2 class="fw-bold text-brown">
         {% if mode %}Edit Menu Item{% else %}Add New Menu Item{% endif %}
       </h2>
       <p class="text-muted">
@@ -24,6 +25,7 @@
       </p>
     </div>
 
+    <!-- Messages -->
     {% if messages %}
       {% for message in messages %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show text-center rounded-3 mb-4">
@@ -33,32 +35,40 @@
       {% endfor %}
     {% endif %}
 
+    <!-- Form -->
     <form method="POST" enctype="multipart/form-data" novalidate>
       {% csrf_token %}
-      
       <div class="row g-3">
-        <div class="col-md-6">
+        <div class="col-12">
           <label for="{{ form.name.id_for_label }}" class="form-label">🍽 Item Name</label>
           {{ form.name }}
-
-          <label for="{{ form.price.id_for_label }}" class="form-label mt-3">💰 Price (₹)</label>
-          {{ form.price }}
-
-          <label for="{{ form.category.id_for_label }}" class="form-label mt-3">📂 Category</label>
-          {{ form.category }}
-
-          <label for="{{ form.available_quantity.id_for_label }}" class="form-label mt-3">📦 Available Quantity</label>
-          {{ form.available_quantity }}
         </div>
 
         <div class="col-md-6">
+          <label for="{{ form.price.id_for_label }}" class="form-label">💰 Price (₹)</label>
+          {{ form.price }}
+        </div>
+        <div class="col-md-6">
+          <label for="{{ form.category.id_for_label }}" class="form-label">📂 Category</label>
+          {{ form.category }}
+        </div>
+
+        <div class="col-md-6">
+          <label for="{{ form.available_quantity.id_for_label }}" class="form-label">📦 Available Quantity</label>
+          {{ form.available_quantity }}
+        </div>
+        <div class="col-md-6">
+          <label for="{{ form.image.id_for_label }}" class="form-label">🖼 Item Image</label>
+          {{ form.image }}
+        </div>
+
+        <div class="col-12">
           <label for="{{ form.description.id_for_label }}" class="form-label">📝 Description</label>
           {{ form.description }}
+        </div>
 
-          <label for="{{ form.image.id_for_label }}" class="form-label mt-3">🖼 Item Image</label>
-          {{ form.image }}
-
-          <div class="form-check form-switch mt-4">
+        <div class="col-12">
+          <div class="form-check form-switch">
             {{ form.available }}
             <label for="{{ form.available.id_for_label }}" class="form-check-label">🔄 Mark as Available</label>
           </div>
@@ -73,75 +83,119 @@
         </div>
       {% endif %}
 
-      <div class="d-flex justify-content-between mt-4">
-        <a href="{% url 'staff_view_menu' %}" class="btn btn-outline-success">
+      <div class="d-flex flex-column flex-md-row justify-content-between mt-4 gap-3">
+        <a href="{% url 'staff_view_menu' %}" class="btn btn-outline-brown w-100 w-md-auto">
           ← Back to Menu
         </a>
-        <button type="submit" class="btn btn-success">
+        <button type="submit" class="btn btn-brown w-100 w-md-auto">
           {% if mode %}💾 Update Item{% else %}➕ Add Item{% endif %}
         </button>
       </div>
     </form>
-
   </div>
 </div>
 
 <style>
   body {
-    background-color: #f0fdf4;
+    background-color: #fffaf3;
   }
-  .card {
+
+  .form-card {
+    max-width: 650px;
+    width: 90%;
     border: none;
+    box-shadow: 0 12px 25px rgba(160, 82, 45, 0.15);
   }
+
   .icon-circle {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #4caf50, #81c784);
+    background: linear-gradient(135deg, #a0522d, #d2b48c);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 28px;
+    font-size: 30px;
     margin: 0 auto;
+    transition: transform 0.3s;
   }
+
+  .icon-circle:hover {
+    transform: scale(1.1);
+  }
+
   .form-label {
     font-weight: 600;
-    color: #2e7d32;
+    color: #5a3e1b;
   }
+
   input, select, textarea {
     width: 100%;
-    padding: 10px;
-    border: 2px solid #c8e6c9;
-    border-radius: 8px;
-    background-color: #f8fff8;
-    transition: border-color 0.3s, box-shadow 0.3s;
+    padding: 12px 15px;
+    border: 2px solid #deb887;
+    border-radius: 10px;
+    background-color: #fffaf0;
+    transition: all 0.3s ease;
+    font-size: 1rem;
   }
+
   input:focus, select:focus, textarea:focus {
-    border-color: #4caf50;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    border-color: #a0522d;
+    box-shadow: 0 0 10px rgba(160, 82, 45, 0.2);
     outline: none;
     background-color: #ffffff;
   }
-  .btn-success {
-    background: linear-gradient(135deg, #4caf50, #81c784);
+
+  .btn-brown {
+    background: linear-gradient(135deg, #a0522d, #d2b48c);
     border: none;
     font-weight: 600;
-    padding: 10px 20px;
-    transition: transform 0.2s;
+    padding: 12px 25px;
+    color: #fff;
+    transition: all 0.3s ease;
   }
-  .btn-success:hover {
+
+  .btn-brown:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+    box-shadow: 0 6px 12px rgba(160, 82, 45, 0.3);
   }
-  .btn-outline-success {
-    border-color: #4caf50;
-    color: #4caf50;
-    transition: background-color 0.3s, color 0.3s;
-  }
-  .btn-outline-success:hover {
-    background-color: #4caf50;
+
+ .btn-outline-brown {
+    border: 2px solid transparent;
+    background-image: linear-gradient(#fffaf3, #fffaf3), 
+                      linear-gradient(135deg, #a0522d, #d2b48c);
+    background-origin: border-box;
+    background-clip: content-box, border-box;
+    color: #a0522d;
+    font-weight: 600;
+    padding: 12px 25px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-outline-brown:hover {
+    color: #fff;
+    background-image: linear-gradient(135deg, #a0522d, #d2b48c);
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(160, 82, 45, 0.3);
+}
+
+
+  .btn-outline-brown:hover {
+    background-color: #a0522d;
     color: #ffffff;
   }
-</style>
 
+  .text-brown {
+    color: #5a3e1b;
+  }
+
+  @media (max-width: 768px) {
+    .form-card {
+      padding: 35px 25px;
+    }
+  }
+</style>
 {% endblock %}

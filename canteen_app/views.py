@@ -9,7 +9,21 @@ import qrcode
 import io
 import base64
 from io import BytesIO
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.hashers import make_password
+from django import forms
+from django.utils import timezone
+import re
 
+# Import your custom User model and other models
+from .models import User, MealToken, TokenStatus, DailyReport, MenuItem
+
+
+from django.contrib.auth.models import User
+from canteen_app.models import MenuItem, Order, MealToken, Notification
 # Django imports
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect, get_object_or_404
@@ -83,7 +97,21 @@ def register(request):
         form = RegisterForm()
     return render(request, "register.html", {"form": form})
 
+
+
+
+# =====================
+# Authentication Views
+# =====================
 def login_view(request):
+    """
+    Handle user login with role-based redirection
+    """
+    # ✅ Properly clear all old messages before showing login page
+    storage = messages.get_messages(request)
+    storage.used = True
+
+
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password")
@@ -98,22 +126,24 @@ def login_view(request):
             # -----------------------------
 
             # 1️⃣ Principal (Admin)
-            if username.lower() == "principal" or user.role == "admin":
+            if username.lower() == "principal" or getattr(user, "role", "") == "admin":
+                messages.success(request, f"Welcome Principal {username}!")
                 return redirect("admin_dashboard")
 
             # 2️⃣ Students (AWHCSxxxx) or Faculty (AWHCFxxxx)
             elif username.upper().startswith("AWHCS") or username.upper().startswith("AWHCF"):
-                # Ensure role consistency in case DB role mismatched
-                if user.role != "user":
+                if getattr(user, "role", "") != "user":
                     user.role = "user"
                     user.save()
+                messages.success(request, f"Welcome {username}!")
                 return redirect("user_dashboard")
 
             # 3️⃣ All others = Canteen Staff
             else:
-                if user.role != "canteenstaff":
+                if getattr(user, "role", "") != "canteenstaff":
                     user.role = "canteenstaff"
                     user.save()
+                messages.success(request, f"Welcome {username}!")
                 return redirect("staff_dashboard")
 
         else:
@@ -122,12 +152,157 @@ def login_view(request):
 
     return render(request, "login.html")
 
+def reset_password(request):
+    """
+    View for resetting user password
+    """
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # Validate form data
+        errors = []
+        
+        # Check if all fields are filled
+        if not username or not new_password or not confirm_password:
+            errors.append("All fields are required.")
+        
+        # Check if passwords match
+        if new_password != confirm_password:
+            errors.append("Passwords do not match.")
+        
+        # Validate password strength
+        if new_password:
+            password_errors = validate_password_strength(new_password)
+            if password_errors:
+                errors.extend(password_errors)
+        
+        # Check if user exists
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            errors.append("User with this username does not exist.")
+        
+        # If there are errors, show them
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'forgot_password.html')
+        
+        # If no errors, update the password
+        try:
+            user.set_password(new_password)  # Use set_password for proper hashing
+            user.save()
+            messages.success(request, "Password reset successfully! You can now login with your new password.")
+            return redirect('login')
+            
+        except Exception as e:
+            messages.error(request, f"An error occurred while resetting password: {str(e)}")
+            return render(request, 'forgot_password.html')
+    
+    # GET request - show the reset password form
+    return render(request, 'forgot_password.html')
+
+def validate_password_strength(password):
+    """
+    Validate password strength
+    """
+    errors = []
+    
+    if len(password) < 8:
+        errors.append("Password must be at least 8 characters long.")
+    
+    if not re.search(r'[A-Z]', password):
+        errors.append("Password must contain at least one uppercase letter.")
+    
+    if not re.search(r'[a-z]', password):
+        errors.append("Password must contain at least one lowercase letter.")
+    
+    if not re.search(r'[0-9]', password):
+        errors.append("Password must contain at least one number.")
+    
+    
+    return errors
+
+# Form-based reset password view (alternative)
+class PasswordResetForm(forms.Form):
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your username',
+            'required': True
+        })
+    )
+    new_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter new password',
+            'required': True
+        })
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirm new password',
+            'required': True
+        })
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+        username = cleaned_data.get('username')
+        
+        # Check if passwords match
+        if new_password and confirm_password and new_password != confirm_password:
+            raise forms.ValidationError("Passwords do not match.")
+        
+        # Validate password strength
+        if new_password:
+            password_errors = validate_password_strength(new_password)
+            if password_errors:
+                raise forms.ValidationError(" ".join(password_errors))
+        
+        # Check if user exists
+        if username and not User.objects.filter(username=username).exists():
+            raise forms.ValidationError("User with this username does not exist.")
+        
+        return cleaned_data
+
+def reset_password_with_form(request):
+    """
+    Alternative view using Django forms
+    """
+    if request.method == 'POST':
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            new_password = form.cleaned_data['new_password']
+            
+            try:
+                user = User.objects.get(username=username)
+                user.set_password(new_password)
+                user.save()
+                
+                messages.success(request, "Password reset successfully! You can now login with your new password.")
+                return redirect('login')
+                
+            except User.DoesNotExist:
+                messages.error(request, "User not found.")
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
+    else:
+        form = PasswordResetForm()
+    
+    return render(request, 'reset_password.html', {'form': form})
 
 def logout_view(request):
     logout(request)
-    messages.success(request, "Logged out successfully.")
-    return redirect("login")
-
+    # Instead of redirecting, render the logout template
+    return render(request, 'logout.html') 
 # =====================
 # Real-time Display
 # =====================
@@ -143,21 +318,23 @@ def now_serving_display(request):
         "current_number": current_serving.current_number if current_serving else 0,
         "recent_served": recent_served
     })
+from collections import defaultdict
+from django.shortcuts import render
+from .models import MenuItem
 
-# --------------------
-# Menu View
-# --------------------
 CATEGORY_DISPLAY = dict(MenuItem.CATEGORY_CHOICES)
 
-@login_required
 def view_menu(request, category=None):
-    if request.user.role == "canteenstaff":
-        menu_items = MenuItem.objects.all()
-    else:
-        menu_items = MenuItem.objects.filter(available=True)
+    # Show all items to all users (no availability filter)
+    menu_items = MenuItem.objects.all()
 
+    # Filter by category if provided
+    if category:
+        category_key = category.lower()
+        menu_items = menu_items.filter(category__iexact=category_key)
+
+    # Categorize items for template
     categorized_items = defaultdict(list)
-
     for item in menu_items:
         display_category = CATEGORY_DISPLAY.get(item.category, item.category.title())
         categorized_items[display_category].append(item)
@@ -167,15 +344,11 @@ def view_menu(request, category=None):
         "selected_category": category.title() if category else "All",
     })
 
-
-# --------------------
-# User Dashboard
-# --------------------
 # --------------------
 # User Dashboard
 # --------------------
 @login_required
-@user_passes_test(lambda u: u.role == "user")
+@user_passes_test(is_student)
 def user_dashboard(request):
     today = timezone.localdate()
     menu_items = MenuItem.objects.filter(date_available=today, available=True)
@@ -258,8 +431,7 @@ def user_menu_list(request):
         "categorized_out_of_stock": dict(categorized_out_of_stock),
     })
 
-
-# --- Add item to cart ---
+# --- Add item to cart with drinks preferred time ---
 @login_required
 @user_passes_test(is_student)
 def cart_add(request, item_id):
@@ -282,6 +454,7 @@ def cart_add(request, item_id):
 
     token_active = start_time <= now <= end_time
 
+    # Restrict lunch ordering outside lunch hours
     if item.category.lower() == "lunch" and not token_active:
         messages.warning(
             request,
@@ -290,6 +463,7 @@ def cart_add(request, item_id):
         )
         return redirect("user_dashboard")
 
+    # Quantity
     try:
         qty_to_add = int(request.POST.get("quantity", 1))
         if qty_to_add < 1:
@@ -297,10 +471,27 @@ def cart_add(request, item_id):
     except (ValueError, TypeError):
         qty_to_add = 1
 
+    # ✅ Drinks minimum quantity check
+    if item.category.lower() == "drinks" and qty_to_add < 5:
+        messages.warning(request, "⚠ Minimum order for drinks is 5.")
+        return redirect("user_dashboard")
+
+    # Portion
     portion = request.POST.get("portion", "full").lower()
     if portion not in ["full", "half"]:
         portion = "full"
 
+    # ✅ Preferred time for drinks
+    preferred_time = None
+    if item.category.lower() == "drinks":
+        preferred_time_str = request.POST.get("preferred_time")
+        if preferred_time_str:
+            try:
+                preferred_time = datetime.strptime(preferred_time_str, "%H:%M").time()
+            except ValueError:
+                preferred_time = None
+
+    # Add/update item in session cart
     cart = request.session.get("cart", {})
     key = f"{item_id}_{portion}"
 
@@ -311,7 +502,12 @@ def cart_add(request, item_id):
             old_qty = int(cart.get(key, 0) or 0)
             cart[key] = {"item_id": item_id, "quantity": old_qty + qty_to_add, "portion": portion}
     else:
-        cart[key] = {"item_id": item_id, "quantity": qty_to_add, "portion": portion}
+        cart[key] = {
+            "item_id": item_id,
+            "quantity": qty_to_add,
+            "portion": portion,
+            "preferred_time": preferred_time_str if preferred_time else None  # store preferred_time in session
+        }
 
     request.session["cart"] = cart
     request.session.modified = True
@@ -323,6 +519,7 @@ def cart_add(request, item_id):
         messages.success(request, f"{item.name} ({portion_text} portion) added to cart successfully!")
 
     return redirect("cart_view")
+
 
 
 @login_required
@@ -418,51 +615,105 @@ def checkout(request):
         messages.error(request, "Your cart is empty!")
         return redirect("cart_view")
 
+    # 1️⃣ PRE-VALIDATE STOCK AVAILABILITY BEFORE CREATING ANYTHING
+    insufficient_stock_items = []
+    cart_items_data = []  # Store validated cart items
+    
+    for key, details in cart.items():
+        item_id = details.get("item_id")
+        quantity = details.get("quantity", 1)
+        portion = details.get("portion", "FULL").upper()
+        menu_item = get_object_or_404(MenuItem, id=item_id)
+
+        # Check if item is available today
+        if not menu_item.is_available_now():
+            insufficient_stock_items.append(f"{menu_item.name} is not available today.")
+            continue
+
+        # Calculate required quantity (considering half portions)
+        unit_qty = Decimal(quantity) * (Decimal("0.5") if portion == "HALF" else Decimal("1.0"))
+        
+        # Check stock availability
+        if menu_item.available_quantity < unit_qty:
+            insufficient_stock_items.append(
+                f"Only {menu_item.available_quantity} {menu_item.name} left today. You requested {unit_qty}."
+            )
+        else:
+            # Store valid items
+            cart_items_data.append({
+                'key': key,
+                'menu_item': menu_item,
+                'quantity': quantity,
+                'portion': portion,
+                'preferred_time_str': details.get("preferred_time"),
+                'unit_qty': unit_qty
+            })
+
+    # If any items have insufficient stock, show error and abort
+    if insufficient_stock_items:
+        for error_msg in insufficient_stock_items:
+            messages.error(request, error_msg)
+        return redirect("cart_view")
+
+    # 2️⃣ ONLY PROCEED IF ALL ITEMS HAVE SUFFICIENT STOCK
     with transaction.atomic():
-        # 1️⃣ Create Order with minimal fields first
-        order = Order.objects.create(
-            user=request.user,
-            total_amount=Decimal("0.0")
-        )
+        # Create Order
+        order = Order.objects.create(user=request.user)
         
         total_amount = Decimal("0.0")
         order_items_list = []
+        preferred_datetime = None
 
-        # 2️⃣ Create OrderItems
-        for key, details in cart.items():
-            item_id = details.get("item_id")
-            quantity = details.get("quantity", 1)
-            portion = details.get("portion", "FULL").upper()
-            menu_item = get_object_or_404(MenuItem, id=item_id)
-
-            # ✅ Check if available at this time
-            if not menu_item.is_available_now():
-                messages.error(request, f"{menu_item.name} is not available at this time.")
-                return redirect("cart_view")
+        # REDUCE STOCK FOR ALL ITEMS FIRST
+        for item_data in cart_items_data:
+            menu_item = item_data['menu_item']
+            unit_qty = item_data['unit_qty']
             
-            unit_qty = Decimal(quantity) * (Decimal("0.5") if portion == "HALF" else Decimal("1.0"))
-
-            if menu_item.available_quantity < unit_qty:
-                messages.error(request, f"Only {menu_item.available_quantity} {menu_item.name} left today.")
+            try:
+                # Use the MenuItem's reduce_stock method
+                menu_item.reduce_stock(unit_qty)
+            except ValueError as e:
+                messages.error(request, str(e))
                 return redirect("cart_view")
 
-            menu_item.reduce_stock(unit_qty)
+        # CREATE ORDER ITEMS AFTER STOCK REDUCTION
+        for item_data in cart_items_data:
+            menu_item = item_data['menu_item']
+            quantity = item_data['quantity']
+            portion = item_data['portion']
+            preferred_time_str = item_data['preferred_time_str']
             
+            # Price calculation (for total amount only)
             if portion == "HALF" and menu_item.has_half and menu_item.half_price:
                 item_price = menu_item.half_price
             else:
                 item_price = menu_item.price
             
+            # Create OrderItem - NO STOCK CHECKING HERE
             order_item = OrderItem.objects.create(
                 order=order, 
                 menu_item=menu_item, 
                 quantity=quantity, 
-                portion=portion,
-                price=item_price
+                portion=portion
             )
-            
             order_items_list.append(order_item)
             total_amount += item_price * Decimal(quantity)
+
+            # ✅ Capture preferred datetime if any (for drinks)
+            if menu_item.category.lower() == "drinks" and preferred_time_str:
+                try:
+                    from datetime import datetime, time
+                    preferred_time = datetime.strptime(preferred_time_str, "%H:%M").time()
+                    today = timezone.localdate()
+                    preferred_datetime = timezone.make_aware(
+                        datetime.combine(today, preferred_time)
+                    )
+                    # Validate it's not in the past
+                    if preferred_datetime < timezone.now():
+                        messages.warning(request, f"Preferred time for {menu_item.name} is in the past. Using current time.")
+                        preferred_datetime = None
+                except ValueError:
+                    preferred_datetime = None
 
             # Update Daily Report
             daily_report, created = DailyReport.objects.get_or_create(
@@ -480,8 +731,7 @@ def checkout(request):
             daily_report.sold_count += quantity
             daily_report.save()
 
-        # 3️⃣ Update order with total and detect meal type
-        order.total_amount = total_amount
+        # Update order with meal type
         categories = [item.menu_item.category for item in order_items_list]
         if categories:
             from collections import Counter
@@ -489,22 +739,30 @@ def checkout(request):
             order.meal_type = meal_type
         order.save()
 
-        # 4️⃣ Create MealToken
+        # Create MealToken
         token = create_meal_token(order)
 
-        # 5️⃣ Generate UPI QR
+        # If we have preferred datetime for drinks, update the token
+        if preferred_datetime:
+            token.start_time = preferred_datetime
+            token.save()
+
+        # Generate UPI QR
         upi_id = "canteen@upi"
-        upi_link = f"upi://pay?pa={upi_id}&pn=CollegeCanteen&am={total_amount}&cu=INR&tn={token.code}"
+        upi_link = f"upi://pay?pa={upi_id}&pn=CollegeCanteen&am={float(order.total_amount)}&cu=INR&tn={token.code}"
         qr_img = qrcode.make(upi_link)
         buffer = io.BytesIO()
         qr_img.save(buffer, format="PNG")
         qr_base64 = base64.b64encode(buffer.getvalue()).decode()
 
-        # 6️⃣ Clear cart
+        # Clear cart
         request.session["cart"] = {}
         request.session.modified = True
 
-    # 7️⃣ Render token ticket page
+        # Send success message
+        messages.success(request, f"Order placed successfully! Token: {token.code}")
+
+    # Render token ticket page
     return render(request, "customer/token_ticket.html", {
         "token": token,
         "order": order,
@@ -722,13 +980,29 @@ def user_tokens(request):
 @login_required
 @user_passes_test(is_student)
 def reviews(request):
-    reviews_list = Review.objects.filter(is_visible=True).order_by('-created_at')
-    return render(request, "customer/reviews.html", {
-        "reviews": reviews_list,
-        "show_user": True,
-        "show_item": True
-    })
-
+    try:
+        reviews_list = Review.objects.filter(is_visible=True).order_by('-created_at')
+        
+        # Debug
+        print(f"Total reviews in DB: {Review.objects.count()}")
+        print(f"Visible reviews: {reviews_list.count()}")
+        
+        context = {
+            "reviews": reviews_list,
+            "show_user": True,
+            "title": "Customer Reviews"
+        }
+        
+        return render(request, "customer/reviews.html", context)
+        
+    except Exception as e:
+        print(f"Error in reviews view: {e}")
+        # Fallback - show empty reviews
+        return render(request, "customer/reviews.html", {
+            "reviews": [],
+            "show_user": True,
+            "title": "Customer Reviews"
+        })
  
 @login_required
 def mark_notifications_read(request):
@@ -823,7 +1097,7 @@ def process_upi_payment(request, code):
                 # Process payment and mark as USED directly
                 token.status = TokenStatus.USED
                 token.upi_transaction_id = upi_transaction_id
-                token.payment_time = timezone.now()
+                token.payment_datetime = timezone.now()
                 token.served_at = timezone.now()
                 token.payment_verified = True
                 token.save()
@@ -1125,25 +1399,36 @@ def edit_daily_menu_item(request, pk):
         form = DailyMenuForm(instance=item)
     return render(request, "staff/edit_menu_item.html", {"form": form, "item": item})
 
+
 @login_required
 @user_passes_test(is_canteen_staff)
 def edit_main_menu_item(request, pk):
     item = get_object_or_404(MenuItem, pk=pk)
     form_class = MainMenuForm
-    
+
     if request.method == "POST":
         form = form_class(request.POST, request.FILES, instance=item)
         if form.is_valid():
-            item = form.save(commit=False)
-            item.date_available = timezone.localdate()
-            item.save()
+            updated_item = form.save(commit=False)
+            updated_item.date_available = timezone.localdate()
+            updated_item.save()
             messages.success(request, "✅ Menu item updated successfully.")
             return redirect("staff_view_menu")
         else:
             messages.error(request, "⚠️ Please fix the errors below.")
     else:
         form = form_class(instance=item)
-    return render(request, "staff/edit_menu_item.html", {"form": form, "item": item})
+
+    # ✅ Pass model choices to template (capitalized consistently)
+    categories = [choice[0] for choice in MenuItem.CATEGORY_CHOICES]
+
+    return render(request, "staff/edit_main_menu_item.html", {
+        "form": form,
+        "item": item,
+        "categories": categories,
+    })
+
+
 @login_required
 @user_passes_test(is_canteen_staff)
 def delete_main_menu_item(request, pk):
@@ -1285,78 +1570,241 @@ def tokens_today(request):
     }
     return render(request, 'staff/tokens_today.html', context)
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
+from django.db.models import Avg  # Import Avg directly
+from .models import Review
+
+@login_required
+@user_passes_test(is_canteen_staff)
+def user_reviews(request):
+    # Handle POST request first (toggle visibility)
+    if request.method == 'POST':
+        review_id = request.POST.get('review_id')
+        if review_id:
+            try:
+                review = get_object_or_404(Review, id=review_id)
+                review.is_visible = not review.is_visible
+                review.save()
+            except Review.DoesNotExist:
+                # Handle the case where review doesn't exist
+                pass
+        return redirect('user_reviews')
+
+    # GET request - display reviews
+    reviews = Review.objects.all().order_by('-created_at')
+    
+    # Statistics
+    total_reviews = reviews.count()
+    visible_reviews = reviews.filter(is_visible=True).count()
+    today_reviews = reviews.filter(created_at__date=timezone.localdate()).count()
+    average_rating = reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
+
+    context = {
+        'reviews': reviews,
+        'total_reviews': total_reviews,
+        'visible_reviews': visible_reviews,
+        'today_reviews': today_reviews,
+        'average_rating': round(average_rating, 1),
+    }
+    return render(request, 'staff/user_reviews.html', context)
+
 # =====================
 # Admin Views
+# =====================
+# =====================
+# Dashboard Views
 # =====================
 @login_required
 @user_passes_test(is_admin)
 def admin_dashboard(request):
     today = timezone.localdate()
     
-    # Token analytics
-    tokens_today = MealToken.objects.filter(generated_at__date=today)
-    token_stats = {
-        'total': tokens_today.count(),
-        'pending': tokens_today.filter(status=TokenStatus.PENDING).count(),
-        'paid': tokens_today.filter(status=TokenStatus.PAID).count(),
-        'used': tokens_today.filter(status=TokenStatus.USED).count(),
-        'expired': tokens_today.filter(status=TokenStatus.EXPIRED).count(),
-        'cancelled': tokens_today.filter(status=TokenStatus.CANCELLED).count(),
-    }
+    try:
+        # Token analytics
+        tokens_today = MealToken.objects.filter(generated_at__date=today)
+        token_stats = {
+            'total': tokens_today.count(),
+            'pending': tokens_today.filter(status=TokenStatus.PENDING).count(),
+            'paid': tokens_today.filter(status=TokenStatus.PAID).count(),
+            'used': tokens_today.filter(status=TokenStatus.USED).count(),
+            'expired': tokens_today.filter(status=TokenStatus.EXPIRED).count(),
+            'cancelled': tokens_today.filter(status=TokenStatus.CANCELLED).count(),
+        }
+        
+        # Sales analytics
+        daily_reports = DailyReport.objects.filter(date=today)
+        total_sold = sum(report.sold_count for report in daily_reports)
+        total_revenue = sum(report.sold_count * report.menu_item.price for report in daily_reports if report.menu_item)
+        
+        # User statistics
+        user_stats = {
+            'total': User.objects.count(),
+            'students': User.objects.filter(role='user').count(),
+            'staff': User.objects.filter(role='canteenstaff').count(),
+            'admins': User.objects.filter(role='admin').count(),
+        }
+        
+        menus = MenuItem.objects.filter(available=True, date_available=today)
+        
+        return render(request, "admin/admin_dashboard.html", {
+            "menus": menus,
+            "token_stats": token_stats,
+            "daily_reports": daily_reports,
+            "total_sold": total_sold,
+            "total_revenue": total_revenue,
+            "user_stats": user_stats,
+        })
     
-    # Sales analytics
-    daily_reports = DailyReport.objects.filter(date=today)
-    total_sold = sum(report.sold_count for report in daily_reports)
-    total_revenue = sum(report.sold_count * report.menu_item.price for report in daily_reports if report.menu_item)
+    except Exception as e:
+        messages.error(request, f"Error loading dashboard: {str(e)}")
+        return render(request, "admin/admin_dashboard.html", {
+            "menus": [],
+            "token_stats": {},
+            "daily_reports": [],
+            "total_sold": 0,
+            "total_revenue": 0,
+            "user_stats": {},
+        })
     
-    # User statistics
-    user_stats = {
-        'total': User.objects.count(),
-        'students': User.objects.filter(role='user').count(),
-        'staff': User.objects.filter(role='canteenstaff').count(),
-        'admins': User.objects.filter(role='admin').count(),
-    }
-    
-    menus = MenuItem.objects.filter(available=True, date_available=today)
-    
-    return render(request, "admin/admin_dashboard.html", {
-        "menus": menus,
-        "token_stats": token_stats,
-        "daily_reports": daily_reports,
-        "total_sold": total_sold,
-        "total_revenue": total_revenue,
-        "user_stats": user_stats,
-    })
+from django.utils import timezone
+from datetime import timedelta, datetime
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render
+from collections import defaultdict
+from .models import MealToken, TokenStatus, MenuItem
 
 @login_required
-@user_passes_test(is_admin)
+@user_passes_test(is_admin)  # Adjust permission check as needed
 def admin_reports(request):
     today = timezone.localdate()
-    reports = DailyReport.objects.filter(date=today)
-    return render(request, "admin/reports.html", {"reports": reports, "today": today})
+    now = timezone.now()
+
+    # FIXED: Use timezone-aware range filtering (same as tokens_today)
+    start_date = timezone.make_aware(datetime.combine(today - timedelta(days=2), datetime.min.time()))
+    end_date = timezone.make_aware(datetime.combine(today + timedelta(days=1), datetime.min.time()))
+    
+    tokens = MealToken.objects.filter(
+        generated_at__gte=start_date,
+        generated_at__lt=end_date
+    ).select_related('order__user').prefetch_related('order__items__menu_item').order_by('-generated_at')
+
+    # Process each token for expiry (same as tokens_today)
+    for token in tokens:
+        # Handle both uppercase and lowercase status
+        if token.status.upper() in [TokenStatus.PENDING, TokenStatus.PAID]:
+            expiry_time = token.generated_at + timedelta(hours=1, minutes=30)
+            if now >= expiry_time:
+                token.status = TokenStatus.EXPIRED
+                token.save()
+
+    # Group tokens by category for display (same as tokens_today)
+    categories = MenuItem.CATEGORY_CHOICES
+    tokens_by_category = defaultdict(list)
+    uncategorized_tokens = []
+    
+    for token in tokens:
+        token_categories = set()
+        # Check if token has order and items
+        if hasattr(token, 'order') and token.order:
+            for order_item in token.order.items.all():
+                token_categories.add(order_item.menu_item.category)
+        
+        if token_categories:
+            for cat in token_categories:
+                cat_display = dict(categories).get(cat, cat)
+                tokens_by_category[cat_display].append(token)
+        else:
+            uncategorized_tokens.append(token)
+
+    # Add uncategorized tokens to a separate group
+    if uncategorized_tokens:
+        tokens_by_category['Uncategorized'] = uncategorized_tokens
+
+    # Check if we're showing tokens from previous days
+    show_recent = tokens.filter(generated_at__date__lt=today).exists()
+
+    # Calculate summary statistics
+    total_tokens = tokens.count()
+    paid_tokens = tokens.filter(status__iexact=TokenStatus.PAID).count()
+    pending_tokens = tokens.filter(status__iexact=TokenStatus.PENDING).count()
+    used_tokens = tokens.filter(status__iexact=TokenStatus.USED).count()
+    expired_tokens = tokens.filter(status__iexact=TokenStatus.EXPIRED).count()
+
+    context = {
+        'tokens': tokens,
+        'tokens_by_category': dict(tokens_by_category),
+        'today_date': today.strftime("%d %b %Y"),
+        'show_recent': show_recent,
+        'total_tokens': total_tokens,
+        'paid_tokens': paid_tokens,
+        'pending_tokens': pending_tokens,
+        'used_tokens': used_tokens,
+        'expired_tokens': expired_tokens,
+    }
+    return render(request, 'admin/reports.html', context)
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
+from django.db.models import Avg  # Import Avg directly
+from .models import Review
 
 @login_required
 @user_passes_test(is_admin)
 def admin_reviews(request):
-    if request.method == "POST":
-        review_id = request.POST.get("review_id")
-        review = get_object_or_404(Review, pk=review_id)
-        review.is_visible = not review.is_visible  # Fixed field name
-        review.save()
-        return redirect("admin_reviews")
-    reviews = Review.objects.all().order_by("-created_at")
-    return render(request, "admin/reviews.html", {"reviews": reviews})
+    # Handle POST request first (toggle visibility)
+    if request.method == 'POST':
+        review_id = request.POST.get('review_id')
+        if review_id:
+            try:
+                review = get_object_or_404(Review, id=review_id)
+                review.is_visible = not review.is_visible
+                review.save()
+            except Review.DoesNotExist:
+                # Handle the case where review doesn't exist
+                pass
+        return redirect('admin_reviews')
+
+    # GET request - display reviews
+    reviews = Review.objects.all().order_by('-created_at')
+    
+    # Statistics
+    total_reviews = reviews.count()
+    visible_reviews = reviews.filter(is_visible=True).count()
+    today_reviews = reviews.filter(created_at__date=timezone.localdate()).count()
+    average_rating = reviews.aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
+
+    context = {
+        'reviews': reviews,
+        'total_reviews': total_reviews,
+        'visible_reviews': visible_reviews,
+        'today_reviews': today_reviews,
+        'average_rating': round(average_rating, 1),
+    }
+    return render(request, 'admin/reviews.html', context)
 
 @login_required
 @user_passes_test(is_admin)
 def admin_menu_list(request):
-    categorized_items = {}
-    items = MenuItem.objects.all().order_by("category")
-    for item in items:
-        categorized_items.setdefault(item.category, []).append(item)
-    return render(request, "admin/menu_list.html", {
-        "categorized_items": categorized_items
-    })
+    today = timezone.localdate()
+    all_items = MenuItem.objects.filter(date_available=today).order_by('category', 'name')
+
+    categorized_available = defaultdict(list)
+    categorized_out_of_stock = defaultdict(list)
+
+    for item in all_items:
+        if item.available_quantity > 0:
+            categorized_available[item.category].append(item)
+        else:
+            categorized_out_of_stock[item.category].append(item)
+
+    context = {
+        "categorized_available": dict(categorized_available),
+        "categorized_out_of_stock": dict(categorized_out_of_stock)
+    }
+    return render(request, "admin/menu_list.html", context)
 
 @login_required
 @user_passes_test(is_admin)

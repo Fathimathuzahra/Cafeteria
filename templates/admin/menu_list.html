@@ -2,18 +2,16 @@
 {% load static %}
 
 {% block content %}
-
-
 <style>
 /* ====== PAGE CONTAINER ====== */
 .container {
     max-width: 1100px;
     margin: 40px auto;
     padding: 25px;
-    background: #FFF8F0; /* soft cream */
+    background: #FFF8F0;
     border-radius: 15px;
     box-shadow: 0 6px 25px rgba(0,0,0,0.1);
-    color: #5C3A21; /* dark brown text */
+    color: #5C3A21;
     font-family: 'Poppins', sans-serif;
 }
 
@@ -21,7 +19,7 @@
 header h1 {
     font-size: 2.2rem;
     font-weight: 700;
-    color: #A0522D; /* warm brown */
+    color: #A0522D;
     text-align: center;
     margin-bottom: 5px;
 }
@@ -37,8 +35,8 @@ header p.description {
 .category-header {
     margin: 30px 0 15px 0;
     padding: 12px 18px;
-    background: #FBEEDD; /* light beige */
-    border-left: 5px solid #A0522D; /* accent border */
+    background: #FBEEDD;
+    border-left: 5px solid #A0522D;
     border-radius: 8px;
     font-size: 1.2rem;
     font-weight: 700;
@@ -56,7 +54,7 @@ table {
 }
 
 thead {
-    background: #F7E6D0; /* soft cream header */
+    background: #F7E6D0;
 }
 thead th {
     color: #5C3A21;
@@ -88,24 +86,17 @@ td {
     border: 2px solid #F7E6D0;
 }
 
-/* ====== ADD TO CART BUTTON ====== */
-.add-to-cart-btn {
-    background: linear-gradient(45deg, #A0522D, #7A3E1F);
-    color: #fff;
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-decoration: none;
-    transition: 0.3s;
+/* ====== BADGES ====== */
+.badge {
     display: inline-block;
-    border: none;
-    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #fff;
 }
-.add-to-cart-btn:hover {
-    opacity: 0.9;
-    transform: scale(1.05);
-}
+.bg-success { background-color: #28a745; }
+.bg-danger { background-color: #dc3545; }
 
 /* ====== OUT OF STOCK SECTION ====== */
 .out-of-stock-section {
@@ -120,47 +111,16 @@ td {
     margin-bottom: 20px;
 }
 
-/* ====== BADGES ====== */
-.badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    color: #fff;
-}
-.bg-success { background-color: #A0522D; }
-.bg-danger { background-color: #D9534F; }
-
-/* ====== QUANTITY INPUT ====== */
-.quantity-input {
-    width: 60px;
-    padding: 5px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    background: #FBEEDD;
-    color: #5C3A21;
-    margin-right: 5px;
-}
-
-/* ====== FORM STYLES ====== */
-.cart-form {
-    display: inline-block;
-    margin-bottom: 5px;
-}
-
 /* ====== RESPONSIVE ====== */
 @media (max-width: 768px) {
     .menu-img { width: 50px; height: 50px; }
-    .quantity-input { width: 50px; }
 }
 </style>
-
 
 <div class="container">
     <header>
         <h1>🍽 Today's Menu</h1>
-        <p class="description">Order your favorite meals easily</p>
+        <p class="description">View today's available menu items</p>
     </header>
 
     <div class="main-content">
@@ -175,18 +135,19 @@ td {
                             <th>Name</th>
                             <th>Description</th>
                             <th>Price</th>
+                            <th>Available Qty</th>
                             <th>Image</th>
-                            <th>Qty</th>
-                            <th>Action</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         {% for item in items %}
                         <tr>
-                            <td>{{ item.name }}</td>
+                            <td><strong>{{ item.name }}</strong></td>
                             <td style="color:#555; font-size:0.85rem;">{{ item.description|truncatewords:12 }}</td>
                             <td>₹{{ item.price }}</td>
+                            <td>{{ item.available_quantity }}</td>
                             <td>
                                 {% if item.image %}
                                     <img src="{{ item.image.url }}" alt="{{ item.name }}" class="menu-img">
@@ -195,30 +156,7 @@ td {
                                 {% endif %}
                             </td>
                             <td>
-                               <input type="number" id="quantity_{{ item.id }}" name="quantity" min="1" class="quantity-input" placeholder="Qty">
-                            </td>
-                            <td>
-                                {% if category|lower == "lunch" %}
-                                    <form method="POST" action="{% url 'cart_add' item.id %}" class="cart-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="quantity" value="1" id="hidden_quantity_full_{{ item.id }}">
-                                        <input type="hidden" name="portion" value="full">
-                                        <button type="submit" class="add-to-cart-btn" onclick="updateQuantity('full', {{ item.id }})">Add Full</button>
-                                    </form>
-                                    <form method="POST" action="{% url 'cart_add' item.id %}" class="cart-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="quantity" value="1" id="hidden_quantity_half_{{ item.id }}">
-                                        <input type="hidden" name="portion" value="half">
-                                        <button type="submit" class="add-to-cart-btn" onclick="updateQuantity('half', {{ item.id }})">Add Half</button>
-                                    </form>
-                                {% else %}
-                                    <form method="POST" action="{% url 'cart_add' item.id %}" class="cart-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="quantity" value="1" id="hidden_quantity_{{ item.id }}">
-                                        <input type="hidden" name="portion" value="full">
-                                        <button type="submit" class="add-to-cart-btn" onclick="updateQuantity('full', {{ item.id }})">Add to Cart</button>
-                                    </form>
-                                {% endif %}
+                                <span class="badge bg-success">Available</span>
                             </td>
                         </tr>
                         {% empty %}
@@ -232,38 +170,42 @@ td {
                 </table>
             {% endfor %}
         {% else %}
-            <p class="text-center" style="color:#aaa;">No menu items available today.</p>
+            <p class="text-center" style="color:#aaa; padding: 20px;">
+                No available menu items for today.
+            </p>
         {% endif %}
 
         <!-- Out of Stock Items -->
         {% if categorized_out_of_stock %}
         <div class="out-of-stock-section">
-            <h3>Currently Out of Stock</h3>
+            <h3>⛔ Currently Out of Stock</h3>
             {% for category, items in categorized_out_of_stock.items %}
-                <div class="category-header" style="border-left-color: #FF5252;">{{ category|title }}</div>
+                <div class="category-header" style="border-left-color: #D9534F;">{{ category|title }}</div>
                 <table>
                     <thead>
                         <tr>
                             <th>Name</th>
                             <th>Description</th>
                             <th>Price</th>
-                            <th>Status</th>
                             <th>Image</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in items %}
                         <tr>
-                            <td>{{ item.name }}</td>
+                            <td><strong>{{ item.name }}</strong></td>
                             <td style="color:#555; font-size:0.85rem;">{{ item.description|truncatewords:12 }}</td>
                             <td>₹{{ item.price }}</td>
-                            <td><span class="badge bg-danger">Out of Stock</span></td>
                             <td>
                                 {% if item.image %}
                                     <img src="{{ item.image.url }}" alt="{{ item.name }}" class="menu-img">
                                 {% else %}
                                     <span style="color:#aaa;">No image</span>
                                 {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-danger">Out of Stock</span>
                             </td>
                         </tr>
                         {% endfor %}
@@ -272,32 +214,13 @@ td {
             {% endfor %}
         </div>
         {% endif %}
+
+        <!-- If no items at all -->
+        {% if not categorized_available and not categorized_out_of_stock %}
+            <p class="text-center" style="color:#aaa; padding: 40px;">
+                No menu items available for today. Please add items with today's date.
+            </p>
+        {% endif %}
     </div>
 </div>
-
-<script>
-// Update hidden quantity based on visible input
-function updateQuantity(portion, itemId) {
-    const quantityInput = document.getElementById('quantity_' + itemId);
-    const hiddenInput = document.getElementById('hidden_quantity_' + (portion !== 'full' ? portion + '_' : '') + itemId);
-    if (quantityInput && hiddenInput) {
-        let quantity = parseInt(quantityInput.value);
-        if (isNaN(quantity) || quantity < 1) quantity = 1;
-        hiddenInput.value = quantity;
-    }
-}
-
-// Initialize hidden fields on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const quantityInputs = document.querySelectorAll('input.quantity-input');
-    quantityInputs.forEach(input => {
-        const itemId = input.id.replace('quantity_', '');
-        const hiddenInputs = document.querySelectorAll('input[type="hidden"][id$="_' + itemId + '"]');
-        hiddenInputs.forEach(hiddenInput => {
-            hiddenInput.value = input.value || 1;
-        });
-    });
-});
-</script>
-
 {% endblock %}
