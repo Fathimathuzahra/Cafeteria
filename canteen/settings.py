@@ -28,12 +28,12 @@ SECRET_KEY = 'django-insecure-u_cwip^$(vdjjy_g^03$i60+y%8!mm#hasji-i&bq4%#t#$kb2
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    "cafteria-sigma.vercel.app",
+    "cafteria-weld-nine.vercel.app",
     "127.0.0.1",
     "localhost",
 ]
 CSRF_TRUSTED_ORIGINS = [
-    "https://cafteria-sigma.vercel.app",
+    "https://cafeteria-weld-nine.vercel.app"
 ]
 AUTH_USER_MODEL = 'canteen_app.User'
 
