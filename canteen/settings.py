@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-u_cwip^$(vdjjy_g^03$i60+y%8!mm#hasji-i&bq4%#t#$kb2
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    "cafteria-weld-nine.vercel.app",
+    "cafeteria-weld-nine.vercel.app",
     "cafteria-sigma.vercel.app",
     "127.0.0.1",
     "localhost",
