@@ -4,213 +4,1134 @@
 {% block title %}Today's Tokens | Staff Panel{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 style="color:#8B4513;">🎟 {% if show_recent %}Recent Tokens{% else %}Today's Tokens{% endif %}</h3>
-        <small style="color:#A0522D;">Date: {{ today_date }}</small>
+<div class="container mt-4 token-page">
+
+    <!-- ========================================= -->
+    <!-- PAGE HEADER -->
+    <!-- ========================================= -->
+
+    <div class="page-header">
+
+        <div>
+            <h3 class="page-title">
+                🎟
+                {% if show_recent %}
+                    Recent Tokens
+                {% else %}
+                    Today's Tokens
+                {% endif %}
+            </h3>
+
+            <div class="date-text">
+                Date: {{ today_date }}
+            </div>
+        </div>
+
     </div>
 
-    <!-- Token Summary Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3 col-sm-6">
-            <div class="card summary-card total">
-                <div class="card-body text-center">
-                    <h6>Total Tokens</h6>
-                    <h4>{{ tokens.count }}</h4>
+
+    <!-- ========================================= -->
+    <!-- SUMMARY CARDS -->
+    <!-- ========================================= -->
+
+    <div class="row g-2 token-summary">
+
+        <!-- Total -->
+        <div class="col-lg-3 col-md-6 col-6">
+
+            <div class="summary-card total">
+
+                <div class="summary-title">
+                    Total Tokens
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card summary-card paid">
-                <div class="card-body text-center">
-                    <h6>Paid</h6>
-                    <h4>{{ tokens|filter_status:'PAID'|length }}</h4>
+
+                <div class="summary-number">
+                    {{ tokens.count }}
                 </div>
+
             </div>
+
         </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card summary-card pending">
-                <div class="card-body text-center">
-                    <h6>Pending</h6>
-                    <h4>{{ tokens|filter_status:'PENDING'|length }}</h4>
+
+
+        <!-- Paid -->
+        <div class="col-lg-3 col-md-6 col-6">
+
+            <div class="summary-card paid">
+
+                <div class="summary-title">
+                    Paid
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6">
-            <div class="card summary-card used">
-                <div class="card-body text-center">
-                    <h6>Used</h6>
-                    <h4>{{ tokens|filter_status:'USED'|length }}</h4>
+
+                <div class="summary-number">
+                    {{ tokens|filter_status:'PAID'|length }}
                 </div>
+
             </div>
+
         </div>
+
+
+        <!-- Pending -->
+        <div class="col-lg-3 col-md-6 col-6">
+
+            <div class="summary-card pending">
+
+                <div class="summary-title">
+                    Pending
+                </div>
+
+                <div class="summary-number">
+                    {{ tokens|filter_status:'PENDING'|length }}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Used -->
+        <div class="col-lg-3 col-md-6 col-6">
+
+            <div class="summary-card used">
+
+                <div class="summary-title">
+                    Used
+                </div>
+
+                <div class="summary-number">
+                    {{ tokens|filter_status:'USED'|length }}
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
+
+
+    <!-- ========================================= -->
+    <!-- TOKEN TABLE -->
+    <!-- ========================================= -->
 
     {% if tokens %}
-    <!-- Token Table -->
-    <div class="card shadow-sm mb-4" style="border: none;">
-        <div class="card-header text-white" style="background-color:#8B4513;">
-            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Token Details</h5>
+
+    <div class="token-box">
+
+        <div class="token-box-header">
+
+            <span>
+                <i class="fas fa-table"></i>
+                Token Details
+            </span>
+
         </div>
+
+
         <div class="table-responsive">
-            <table class="table align-middle mb-0" style="color:#3E2C1C;">
-                <thead style="background-color:#FFF3E0;">
+
+            <table class="token-table">
+
+                <!-- TABLE HEADER -->
+
+                <thead>
+
                     <tr>
+
+                        <th>#</th>
+
                         <th>Token Code</th>
+
                         <th>Status</th>
+
                         <th>Student</th>
+
                         <th>Items</th>
-                        <th>Total (₹)</th>
+
+                        <th>Total</th>
+
                         <th>Order Time</th>
+
                         <th>Time Left</th>
+
                         <th>Transaction</th>
+
                     </tr>
+
                 </thead>
+
+
+                <!-- TABLE BODY -->
+
                 <tbody>
+
                     {% for token in tokens %}
-                    <tr style="background-color:{% if token.status == 'PAID' %}#240e6cff{% elif token.status == 'USED' %} #178e29ff{% elif token.status == 'PENDING' %}#FFFDF5{% else %}#F9E6DA{% endif %};">
-                        <td><strong>{{ token.code }}</strong></td>
-                        <td>
-                            <span class="badge" style="background-color:{% if token.status == 'PAID' %} #240e6cff{% elif token.status == 'USED' %} #178e29ff{% elif token.status == 'PENDING' %}#FDE6C4{% else %}#A0522D{% endif %}; color:{% if token.status == 'PENDING' %} #3E2C1C{% else %} #FFF8F0{% endif %};">
-                                {{ token.status|upper }}
-                            </span>
+
+                    <tr>
+
+                        <!-- Number -->
+
+                        <td class="serial-number">
+
+                            {{ forloop.counter }}
+
                         </td>
-                        <td>{{ token.order.user.username }}</td>
-                        <td>
-                            <small>
-                                {% for item in token.order.items.all %}
-                                    {{ item.menu_item.name }}({{ item.quantity }}){% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            </small>
+
+
+                        <!-- Token Code -->
+
+                        <td class="token-code">
+
+                            {{ token.code }}
+
                         </td>
-                        <td>{{ token.order.total_amount }}</td>
-                        <td>{{ token.generated_at|date:"h:i A" }}</td>
+
+
+                        <!-- Status -->
+
                         <td>
-                            {% if token.time_remaining %}
-                                <span class="badge" style="background-color:{% if token.time_remaining < 30 %}#A0522D{% else %}#FDE6C4{% endif %}; color: #3E2C1C;">
-                                    {{ token.time_remaining }} min
+
+                            {% if token.status == 'PAID' %}
+
+                                <span class="status-badge paid-status">
+                                    PAID
                                 </span>
+
+                            {% elif token.status == 'USED' %}
+
+                                <span class="status-badge used-status">
+                                    USED
+                                </span>
+
+                            {% elif token.status == 'PENDING' %}
+
+                                <span class="status-badge pending-status">
+                                    PENDING
+                                </span>
+
                             {% else %}
-                                <span class="text-muted">-</span>
+
+                                <span class="status-badge other-status">
+                                    {{ token.status|upper }}
+                                </span>
+
                             {% endif %}
+
                         </td>
+
+
+                        <!-- Student -->
+
                         <td>
-                            {% if token.upi_transaction_id %}
-                                <small>{{ token.upi_transaction_id }}</small><br>
-                                <small class="text-muted">{{ token.payment_time|date:"h:i A" }}</small>
-                            {% else %}
-                                <span class="text-muted">N/A</span>
-                            {% endif %}
+
+                            {{ token.order.user.username }}
+
                         </td>
+
+
+                        <!-- Items -->
+
+                        <td class="items-cell">
+
+                            {% for item in token.order.items.all %}
+
+                                <span class="item-name">
+
+                                    {{ item.menu_item.name }}
+
+                                </span>
+
+                                <span class="item-quantity">
+
+                                    × {{ item.quantity }}
+
+                                </span>
+
+                                {% if not forloop.last %}
+                                    <br>
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </td>
+
+
+                        <!-- Total -->
+
+                        <td class="total-cell">
+
+                            ₹{{ token.order.total_amount }}
+
+                        </td>
+
+
+                        <!-- Order Time -->
+
+                        <td>
+
+                            {{ token.generated_at|date:"h:i A" }}
+
+                        </td>
+
+
+                        <!-- Time Left -->
+
+                        <td>
+
+                            {% if token.time_remaining %}
+
+                                {% if token.time_remaining < 30 %}
+
+                                    <span class="time-badge warning-time">
+                                        {{ token.time_remaining }} min
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="time-badge normal-time">
+                                        {{ token.time_remaining }} min
+                                    </span>
+
+                                {% endif %}
+
+                            {% else %}
+
+                                <span class="no-value">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- Transaction -->
+
+                        <td class="transaction-cell">
+
+                            {% if token.upi_transaction_id %}
+
+                                <div class="transaction-id">
+
+                                    {{ token.upi_transaction_id }}
+
+                                </div>
+
+                                <div class="payment-time">
+
+                                    {{ token.payment_time|date:"h:i A" }}
+
+                                </div>
+
+                            {% else %}
+
+                                <span class="no-value">
+                                    N/A
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
                     </tr>
+
                     {% endfor %}
+
                 </tbody>
+
             </table>
+
         </div>
+
     </div>
+
 
     {% else %}
-    <!-- No Tokens -->
-    <div class="card text-center mt-4 shadow-sm" style="background-color: #FFF3E0; color: #3E2C1C;">
-        <div class="card-body">
-            <i class="fas fa-ticket-alt fa-3x mb-3"></i>
-            <h5 class="card-title">No tokens generated yet</h5>
-            <p class="card-text">Tokens created today or recently will appear here automatically.</p>
+
+
+    <!-- ========================================= -->
+    <!-- NO TOKENS -->
+    <!-- ========================================= -->
+
+    <div class="no-token-box">
+
+        <div class="no-token-icon">
+            🎟
         </div>
+
+        <h5>
+            No tokens generated yet
+        </h5>
+
+        <p>
+            Tokens created today or recently will appear here automatically.
+        </p>
+
     </div>
+
+
     {% endif %}
 
-    <!-- Actions -->
-    <div class="mt-4 d-flex gap-2">
-        <a href="{% url 'staff_dashboard' %}" class="btn btn-sm" style="background-color:#D2691E; color:#FFF8F0;">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+
+    <!-- ========================================= -->
+    <!-- ACTION BUTTONS -->
+    <!-- ========================================= -->
+
+    <div class="action-buttons">
+
+        <a
+            href="{% url 'staff_dashboard' %}"
+            class="back-button"
+        >
+
+            <i class="fas fa-arrow-left"></i>
+
+            Back to Dashboard
+
         </a>
-        <button onclick="window.location.reload()" class="btn btn-sm" style="background-color:#FDE6C4; color:#3E2C1C;">
-            <i class="fas fa-sync-alt"></i> Refresh
+
+
+        <button
+            onclick="window.location.reload()"
+            class="refresh-button"
+        >
+
+            <i class="fas fa-sync-alt"></i>
+
+            Refresh
+
         </button>
+
     </div>
+
 </div>
+
+
+<!-- ====================================================== -->
+<!-- CSS -->
+<!-- ====================================================== -->
+
 <style>
-/* Token Summary Cards */
-.summary-card {
-    border: none;
-    border-radius: 15px;
-    color: #FFF8F0;
-    text-align: center;
-    transition: all 0.3s ease;
-    height: 120px;
+
+/* ========================================= */
+/* PAGE */
+/* ========================================= */
+
+.token-page {
+
+    padding-bottom: 30px;
+
+}
+
+
+/* ========================================= */
+/* HEADER */
+/* ========================================= */
+
+.page-header {
+
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(139, 69, 19, 0.15);
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 18px;
+
 }
-.summary-card h6 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.3rem;
-    letter-spacing: 0.5px;
-}
-.summary-card h4 {
-    font-weight: 700;
-    font-size: 1.6rem;
+
+
+.page-title {
+
     margin: 0;
+
+    color: #8B4513;
+
+    font-size: 1.35rem;
+
+    font-weight: 700;
+
 }
+
+
+.date-text {
+
+    color: #A0522D;
+
+    font-size: 0.78rem;
+
+    margin-top: 4px;
+
+}
+
+
+/* ========================================= */
+/* SUMMARY CARDS */
+/* ========================================= */
+
+.token-summary {
+
+    margin-bottom: 20px;
+
+}
+
+
+.summary-card {
+
+    height: 68px;
+
+    border-radius: 9px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    text-align: center;
+
+    box-shadow:
+        0 2px 5px rgba(80, 40, 10, 0.12);
+
+    transition: 0.2s ease;
+
+}
+
+
 .summary-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 8px 16px rgba(139, 69, 19, 0.25);
-}
-.summary-card.total { background-color: #8B4513; }
-.summary-card.paid { background-color: #D2691E; }
-.summary-card.pending { background-color: #FDE6C4; color: #3E2C1C; }
-.summary-card.used { background-color: #A0522D; }
 
-/* Table Styling */
-.table {
-    border-collapse: separate;
-    border-spacing: 0 8px;
+    transform: translateY(-2px);
+
 }
-.table thead th {
+
+
+.summary-title {
+
+    font-size: 0.72rem;
+
     font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    border-bottom: 2px solid #E5C49D;
-    background-color: #FFF3E0;
-    color: #3E2C1C;
-    letter-spacing: 0.3px;
-}
-.table td {
-    vertical-align: middle;
-    font-size: 0.9rem;
-    background-color: #FFFDF8;
-    border-top: none;
-    padding: 12px 14px;
-}
-.table tbody tr {
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(139, 69, 19, 0.1);
-}
-.table tbody tr:hover {
-    background-color: #FFF8F0;
-    transition: 0.3s ease;
-}
-.badge {
-    font-size: 0.75rem;
-    padding: 0.4em 0.65em;
-    border-radius: 6px;
+
+    margin-bottom: 2px;
+
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .summary-card {
-        height: 100px;
-        margin-bottom: 10px;
-    }
-    .summary-card h4 {
-        font-size: 1.3rem;
-    }
+
+.summary-number {
+
+    font-size: 1.2rem;
+
+    font-weight: 700;
+
 }
+
+
+/* Total */
+
+.summary-card.total {
+
+    background-color: #8B4513;
+
+    color: #FFFFFF;
+
+}
+
+
+/* Paid */
+
+.summary-card.paid {
+
+    background-color: #D2691E;
+
+    color: #FFFFFF;
+
+}
+
+
+/* Pending */
+
+.summary-card.pending {
+
+    background-color: #FDE6C4;
+
+    color: #3E2C1C;
+
+}
+
+
+/* Used */
+
+.summary-card.used {
+
+    background-color: #A0522D;
+
+    color: #FFFFFF;
+
+}
+
+
+/* ========================================= */
+/* TOKEN BOX */
+/* ========================================= */
+
+.token-box {
+
+    background-color: #FFFFFF;
+
+    border: 1px solid #E5C49D;
+
+    border-radius: 8px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 2px 7px rgba(80, 40, 10, 0.08);
+
+}
+
+
+/* ========================================= */
+/* TOKEN BOX HEADER */
+/* ========================================= */
+
+.token-box-header {
+
+    background-color: #8B4513;
+
+    color: #FFFFFF;
+
+    padding: 9px 13px;
+
+    font-size: 0.88rem;
+
+    font-weight: 600;
+
+}
+
+
+/* ========================================= */
+/* TABLE */
+/* ========================================= */
+
+.table-responsive {
+
+    width: 100%;
+
+    overflow-x: auto;
+
+}
+
+
+.token-table {
+
+    width: 100%;
+
+    min-width: 950px;
+
+    border-collapse: collapse;
+
+    table-layout: auto;
+
+}
+
+
+/* ========================================= */
+/* TABLE HEADER */
+/* ========================================= */
+
+.token-table thead th {
+
+    background-color: #FFF3E0;
+
+    color: #3E2C1C;
+
+    border: 1px solid #E3C9A5;
+
+    padding: 9px 8px;
+
+    font-size: 0.70rem;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    text-align: center;
+
+    white-space: nowrap;
+
+}
+
+
+/* ========================================= */
+/* TABLE BODY */
+/* ========================================= */
+
+.token-table tbody td {
+
+    background-color: #FFFFFF;
+
+    color: #3E2C1C;
+
+    border: 1px solid #E8D8C4;
+
+    padding: 8px;
+
+    font-size: 0.75rem;
+
+    text-align: center;
+
+    vertical-align: middle;
+
+}
+
+
+/* ========================================= */
+/* ROWS */
+/* ========================================= */
+
+.token-table tbody tr:nth-child(even) td {
+
+    background-color: #FFFDF8;
+
+}
+
+
+.token-table tbody tr:hover td {
+
+    background-color: #FFF3E0;
+
+}
+
+
+/* ========================================= */
+/* SERIAL NUMBER */
+/* ========================================= */
+
+.serial-number {
+
+    color: #8B4513;
+
+    font-weight: 600;
+
+    width: 40px;
+
+}
+
+
+/* ========================================= */
+/* TOKEN CODE */
+/* ========================================= */
+
+.token-code {
+
+    color: #8B4513;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+}
+
+
+/* ========================================= */
+/* ITEMS */
+/* ========================================= */
+
+.items-cell {
+
+    text-align: left !important;
+
+    min-width: 130px;
+
+}
+
+
+.item-name {
+
+    font-weight: 600;
+
+}
+
+
+.item-quantity {
+
+    color: #A0522D;
+
+    font-weight: 600;
+
+}
+
+
+/* ========================================= */
+/* TOTAL */
+/* ========================================= */
+
+.total-cell {
+
+    font-weight: 700;
+
+    color: #8B4513 !important;
+
+    white-space: nowrap;
+
+}
+
+
+/* ========================================= */
+/* STATUS */
+/* ========================================= */
+
+.status-badge {
+
+    display: inline-block;
+
+    padding: 4px 7px;
+
+    border-radius: 4px;
+
+    font-size: 0.62rem;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+}
+
+
+/* Paid */
+
+.paid-status {
+
+    background-color: #240E6C;
+
+    color: #FFFFFF;
+
+}
+
+
+/* Used */
+
+.used-status {
+
+    background-color: #178E29;
+
+    color: #FFFFFF;
+
+}
+
+
+/* Pending */
+
+.pending-status {
+
+    background-color: #FDE6C4;
+
+    color: #3E2C1C;
+
+}
+
+
+/* Other */
+
+.other-status {
+
+    background-color: #A0522D;
+
+    color: #FFFFFF;
+
+}
+
+
+/* ========================================= */
+/* TIME */
+/* ========================================= */
+
+.time-badge {
+
+    display: inline-block;
+
+    padding: 4px 7px;
+
+    border-radius: 4px;
+
+    font-size: 0.62rem;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+}
+
+
+.normal-time {
+
+    background-color: #FDE6C4;
+
+    color: #3E2C1C;
+
+}
+
+
+.warning-time {
+
+    background-color: #A0522D;
+
+    color: #FFFFFF;
+
+}
+
+
+/* ========================================= */
+/* TRANSACTION */
+/* ========================================= */
+
+.transaction-cell {
+
+    min-width: 120px;
+
+}
+
+
+.transaction-id {
+
+    font-size: 0.68rem;
+
+    font-weight: 600;
+
+    word-break: break-all;
+
+}
+
+
+.payment-time {
+
+    color: #888888;
+
+    font-size: 0.65rem;
+
+    margin-top: 2px;
+
+}
+
+
+.no-value {
+
+    color: #999999;
+
+    font-size: 0.72rem;
+
+}
+
+
+/* ========================================= */
+/* NO TOKENS */
+/* ========================================= */
+
+.no-token-box {
+
+    background-color: #FFF8EE;
+
+    border: 1px solid #E5C49D;
+
+    border-radius: 8px;
+
+    text-align: center;
+
+    padding: 25px 15px;
+
+    margin-top: 15px;
+
+}
+
+
+.no-token-icon {
+
+    width: 42px;
+
+    height: 42px;
+
+    margin: 0 auto 10px;
+
+    border-radius: 50%;
+
+    background-color: #8B4513;
+
+    color: #FFFFFF;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 1.15rem;
+
+}
+
+
+.no-token-box h5 {
+
+    color: #3E2C1C;
+
+    font-size: 0.95rem;
+
+    font-weight: 700;
+
+    margin-bottom: 5px;
+
+}
+
+
+.no-token-box p {
+
+    color: #8A6A50;
+
+    font-size: 0.75rem;
+
+    margin: 0;
+
+}
+
+
+/* ========================================= */
+/* ACTION BUTTONS */
+/* ========================================= */
+
+.action-buttons {
+
+    display: flex;
+
+    gap: 8px;
+
+    margin-top: 15px;
+
+}
+
+
+.back-button,
+.refresh-button {
+
+    border: none;
+
+    border-radius: 5px;
+
+    padding: 6px 10px;
+
+    font-size: 0.72rem;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+}
+
+
+/* Back */
+
+.back-button {
+
+    background-color: #D2691E;
+
+    color: #FFFFFF;
+
+}
+
+
+.back-button:hover {
+
+    background-color: #A0522D;
+
+    color: #FFFFFF;
+
+}
+
+
+/* Refresh */
+
+.refresh-button {
+
+    background-color: #FDE6C4;
+
+    color: #3E2C1C;
+
+}
+
+
+.refresh-button:hover {
+
+    background-color: #E5C49D;
+
+}
+
+
+/* ========================================= */
+/* MOBILE */
+/* ========================================= */
+
+@media (max-width: 768px) {
+
+    .page-title {
+
+        font-size: 1.1rem;
+
+    }
+
+
+    .summary-card {
+
+        height: 62px;
+
+    }
+
+
+    .summary-title {
+
+        font-size: 0.65rem;
+
+    }
+
+
+    .summary-number {
+
+        font-size: 1rem;
+
+    }
+
+
+    .token-table {
+
+        min-width: 900px;
+
+    }
+
+
+    .token-table thead th {
+
+        font-size: 0.65rem;
+
+        padding: 7px;
+
+    }
+
+
+    .token-table tbody td {
+
+        font-size: 0.70rem;
+
+        padding: 7px;
+
+    }
+
+}
+
 </style>
 
 {% endblock %}
