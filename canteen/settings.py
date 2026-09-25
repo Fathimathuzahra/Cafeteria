@@ -21,21 +21,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u_cwip^$(vdjjy_g^03$i60+y%8!mm#hasji-i&bq4%#t#$kb2'
+# # SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = 'django-insecure-u_cwip^$(vdjjy_g^03$i60+y%8!mm#hasji-i&bq4%#t#$kb2'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# # SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = False
+
+# ALLOWED_HOSTS = [
+# ]
+# CSRF_TRUSTED_ORIGINS = [
+# ]
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-local-development-key'
+)
+
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [
-    "cafeteria-weld-nine.vercel.app",
-    "cafteria-sigma.vercel.app",
-    "127.0.0.1",
-    "localhost",
+    'localhost',
+    '127.0.0.1',
+    '.railway.app',
 ]
+
 CSRF_TRUSTED_ORIGINS = [
-    "https://cafeteria-weld-nine.vercel.app",
-    "https://cafteria-sigma.vercel.app",
+    'https://*.railway.app',
 ]
 AUTH_USER_MODEL = 'canteen_app.User'
 
@@ -91,21 +101,33 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'canteen_db',             # your DB name
+#         'USER': 'canteen_user',           # MySQL user
+#         'PASSWORD': 'StrongPassword123!', # password you set
+#         'HOST': 'localhost',
+#         'PORT': '3306',                   # default MySQL port
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+#         }
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'canteen_db',             # your DB name
-        'USER': 'canteen_user',           # MySQL user
-        'PASSWORD': 'StrongPassword123!', # password you set
-        'HOST': 'localhost',
-        'PORT': '3306',                   # default MySQL port
+        'NAME': os.environ.get('DB_NAME', 'canteen_db'),
+        'USER': os.environ.get('DB_USER', 'canteen_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'StrongPassword123!'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
         }
     }
 }
-
-
 
 LOGIN_URL = '/login/'
 
